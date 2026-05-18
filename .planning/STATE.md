@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 
 ## Current Position
 
-Phase: 2 of 4 (UI Shell + Per-Turn Play) — COMPLETE
-Plan: 3 of 3 complete in current phase
-Status: Phase 2 COMPLETE — full per-turn play view + AppTest smoke coverage shipped; Phase 3 (Debrief Charts + Narrative) unblocked
-Last activity: 2026-05-18 — Completed Plan 02-03 (beergame/views/play.py full per-turn UI with 5 metrics + Plotly mini-chart + st.form order input; tests/test_app_smoke.py with 5 AppTest tests; 56/56 pytest green; AST guard 4/4; streamlit run app.py drives a complete 36-week playthrough ending on the debrief placeholder)
+Phase: 3 of 4 (Debrief Charts + Narrative) — IN PROGRESS
+Plan: 1 of 2 complete in current phase
+Status: Plan 03-01 COMPLETE — debrief metrics (variance_bullwhip_ratio + per_echelon_amplification + cost_breakdown) + 4-panel chart builder shipped; Plan 03-02 (debrief view assembly + narrative) ready to plan/execute
+Last activity: 2026-05-18 — Completed Plan 03-01 (engine/metrics.py extended with 4 new public symbols including CostRow; beergame/charts package with build_four_panel(state) -> go.Figure containing 8 traces + week-5 vline; canonical_done_state fixture mirrors GATE 2; 71/71 pytest green; AST guard 4/4 clean; canonical seed=42 variance ratio = 35.38, monotonic upstream amplification R=3.43/W=12.81/D=29.27/F=35.38)
 
-Progress: [██████░░░░] 60%
+Progress: [███████░░░] 70%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 3.2min
-- Total execution time: 19min
+- Total plans completed: 7
+- Average duration: 3.4min
+- Total execution time: 24min
 
 **By Phase:**
 
@@ -29,12 +29,12 @@ Progress: [██████░░░░] 60%
 |-------|-------|-------|----------|
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
 | 2. UI Shell + Per-Turn Play | 3/3 ✅ | 9min | 3min |
-| 3. Debrief Charts + Narrative | 0/TBD | — | — |
+| 3. Debrief Charts + Narrative | 1/2 | 5min | 5min |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
 
 **Recent Trend:**
-- Last 5 plans: 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files)
-- Trend: steady velocity, Phase 1 + Phase 2 both COMPLETE, 56/56 tests passing (added 5 AppTest smokes), AST guard still 4/4 clean
+- Last 5 plans: 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files)
+- Trend: steady velocity, Phase 1 + Phase 2 COMPLETE, Phase 3 underway (Plan 1 of 2 shipped); 71/71 tests passing (15 new for metrics + charts); AST guard still 4/4 clean
 
 *Updated after each plan completion*
 
@@ -46,6 +46,7 @@ Progress: [██████░░░░] 60%
 | Phase 02-ui-shell-per-turn-play P01 | 3min | 2 tasks | 4 files |
 | Phase 02-ui-shell-per-turn-play P02 | 3min | 3 tasks | 8 files |
 | Phase 02-ui-shell-per-turn-play P03 | 3min | 2 tasks | 2 files |
+| Phase 03-debrief-charts-narrative P01 | 5min | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -86,17 +87,25 @@ Recent decisions affecting current work:
 - [Phase 02-ui-shell-per-turn-play]: Per-turn order form: `st.form("turn_form", clear_on_submit=True)` wrapping `st.number_input(min_value=0, step=1, value=4, key="order_input")` + `st.form_submit_button("Advance week", on_click=on_submit, type="primary")`. NO `max_value` (AF-4: capping silently truncates canonical bullwhip orders that reach 30-80+ at Factory). NO `args=` on the submit button (Pitfall 2: args captures value at render time, not submit time — the callback reads `st.session_state["order_input"]`).
 - [Phase 02-ui-shell-per-turn-play]: Mini-chart x-axis bounded by `len(orders_placed_history)`, NEVER hard-coded to 36 (Pitfall 18 — would imply future weeks the player hasn't played).
 - [Phase 02-ui-shell-per-turn-play]: AppTest in Streamlit 1.57.0 exposes `st.form_submit_button` via `at.button[i]` (the same `at.button` collection holds both `st.button` AND `st.form_submit_button` widgets, indexed by render order). There is NO `at.form_submit_button` accessor. Future test plans MUST use `at.button[i]` to reach form submits.
+- [Phase 03-debrief-charts-narrative]: engine/metrics.py is now two-phase: Phase 1's `peak_orders` + max-based `bullwhip_ratio` (GATE 2 calibration metric, ratio still 2.000 at seed=42, UNTOUCHED) coexist with Phase 3's `variance_bullwhip_ratio` + `per_echelon_amplification` + `cost_breakdown` + `CostRow` (debrief metrics, DEB-03 + DEB-04). Both ratios measure bullwhip; the variance-based ratio is the DEB-03 headline (35.38 at seed=42), the max-based ratio is the Phase 1 calibration gate.
+- [Phase 03-debrief-charts-narrative]: `beergame/charts/` is a NEW package mirroring the engine/ai/config purity contract — zero streamlit imports. AST guard still covers only engine/ai/config (chart purity enforced by convention and grep checks). View layer (Plan 03-02) is the ONLY place that imports both streamlit AND beergame.charts.
+- [Phase 03-debrief-charts-narrative]: Variance metrics use `statistics.pvariance` (POPULATION variance, ddof=0) — we have the full 36-week series, not a sample. NO numpy, NO pandas anywhere in beergame/. Three defensive-guard layers: empty/length-1 history raises StatisticsError → return 0.0; denom == 0 → return 0.0; otherwise numer/denom. Future plans MUST keep these guards.
+- [Phase 03-debrief-charts-narrative]: `cost_breakdown` formula mirrors `engine/costs.py::weekly_cost` EXACTLY (HOLDING_COST * max(0, inv) + BACKORDER_COST * bl, summed over history tuples). The reconciliation invariant (`row.total == state.stations[role.value].cost_history[-1]` to 1¢) is load-bearing — drift breaks the debrief table's trustworthiness. Tested in `test_cost_breakdown_reconciles_with_engine_cost_history`.
+- [Phase 03-debrief-charts-narrative]: Week-5 vline at `CLASSIC_STEP_BREAK_WEEK + 1` (= 5) NOT `CLASSIC_STEP_BREAK_WEEK` (= 4) — CLASSIC_STEP_BREAK_WEEK is the LAST pre-step week, demand fires AT week 5. Code comment in `build_four_panel` documents the +1; tests assert `abs(s.x0 - 5) < 1e-9` for all 4 shapes (Pitfall 1 from 03-RESEARCH.md).
+- [Phase 03-debrief-charts-narrative]: `canonical_done_state` fixture in `tests/conftest.py` is session-scoped and uses ALL-Sterman (mirrors GATE 2's `_all_sterman_agents()`) — NOT player-plays-constant-4. Constant-4 Retailer absorbs the demand shock into its own backlog without changing orders PLACED, so Sterman at W/D/F sees flat orders_received forever and the bullwhip silently dies (variance returns 0.0). Future fixture additions in this phase MUST use simulate_full_game(all-Sterman) for canonical bullwhip assertions.
+- [Phase 03-debrief-charts-narrative]: Canonical seed=42 numbers (Plan 03-02 sanity-check reference): variance bullwhip ratio = 35.38, per-echelon R=3.43 / W=12.81 / D=29.27 / F=35.38 (monotonic upstream amplification), cost ledger R=$222.50 / W=$299.00 / D=$498.50 / F=$421.50 (all reconciling exactly via cost_history[-1]). Max-based ratio still 2.000 (Phase 1 GATE 2 intact).
+- [Phase 03-debrief-charts-narrative]: Plotly chart structure tested directly against `go.Figure` (`fig.data`, `fig.layout.shapes`, `fig.layout.annotations`, `fig.layout.xaxis4.title.text`) — NOT via AppTest, which returns UnknownElement for chart elements. Plan 03-02's view tests MUST use the same pattern for any chart-shape assertions; AppTest is reserved for transition smoke (debrief renders, "Play again" button present).
 
 ### Pending Todos
 
-None — Plan 02-03 complete; Phase 2 COMPLETE. Next: Phase 3 (Debrief Charts + Narrative) is fully unblocked. Phase 3 will replace `beergame/views/debrief.py`'s placeholder body with the real charts (orders-placed across all 4 stations, inventory-vs-backlog, cumulative cost) + narrative explaining the bullwhip the player just produced.
+Plan 03-02 (debrief view assembly + narrative). Needs to: (1) replace `beergame/views/debrief.py` placeholder body to render `build_four_panel` via `st.plotly_chart(fig, key="debrief_four_panel", width="stretch")`; (2) show variance_bullwhip_ratio as headline metric + per_echelon_amplification as four `st.metric` tiles + cost_breakdown as `st.table([{...}, ...])` (no pandas); (3) create `beergame/narrative/` package with four station-specific templates (DEB-05) interpolating overall ratio, per-echelon ratio, player station cost; (4) wire "Play again" to existing `app.py::reset_game` callback (DEB-06, already plumbed via `on_reset` param); (5) extend `tests/test_app_smoke.py` with a debrief-renders smoke + add unit tests for `narrative_for(state)` (≤200 words, mentions "bullwhip", contains player's role name).
 
 ### Blockers/Concerns
 
-None. Phase 1 invariants still intact (bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free). 56/56 pytest passing (51 prior + 5 new AppTest smoke). `streamlit run app.py` smoke test passes (HTTP 200, `_stcore/health` = ok), full 36-week playthrough completes without exceptions and lands on the debrief placeholder.
+None. Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ also streamlit-free by design). 71/71 pytest passing (56 prior + 9 metrics + 6 charts). No numpy/pandas anywhere in beergame/. The 4-panel chart builder and three new metrics are unit-tested at the go.Figure / pure-function level — Plan 03-02 has a clean, tested foundation to assemble.
 
 ## Session Continuity
 
-Last session: 2026-05-18T21:06:59Z
-Stopped at: Completed 02-ui-shell-per-turn-play/02-03-PLAN.md — Per-turn play view fully implemented: 5 metrics (inventory, backlog, last_shipment_received, last_order_received, supply_line) + Plotly orders-history mini-chart (width="stretch", key="player_order_history") + st.form with st.number_input(min_value=0, step=1, value=4, key="order_input") + "Advance week" form_submit_button. PLAY-03 enforced — cross-station reads ONLY via build_station_view. 5 AppTest smoke tests cover: rules->setup, setup->playing, submit-advances-week, week-36-transitions-done, first-visit-sanity. 56/56 pytest green; AST guard 4/4. Phase 2 COMPLETE.
-Resume file: .planning/phases/03-debrief-charts-narrative/ (Phase 3 to be planned)
+Last session: 2026-05-18T21:35:11Z
+Stopped at: Completed 03-debrief-charts-narrative/03-01-PLAN.md — engine/metrics.py extended with variance_bullwhip_ratio + per_echelon_amplification + cost_breakdown (CostRow dataclass) alongside untouched Phase 1 peak_orders + bullwhip_ratio. NEW package beergame/charts/ with build_four_panel(state) -> go.Figure: 8 traces (4 stations × {orders, inventory}), 4 vertical-line shapes at x=5 (one per panel from row="all") each annotated "Customer demand: 4 → 8", shared x-axis, height=700, "Week" title on bottom panel only. canonical_done_state fixture (session-scoped, all-Sterman via simulate_full_game) replaces the broken constant-4-player approach (Rule 1 auto-fix — constant-4 Retailer kills the bullwhip signal). 15 new tests (9 metrics covering empty-history, canonical > 1.0, all 4 Role keys, monotonic F > R, tuple order, total = h + b, total == cost_history[-1] reconciliation, max(0,x) on holding, zero-denominator; 6 charts covering 8 traces, vline at x=5, '4'+'8' annotation, "Week" axis title, station-name subplot titles, state.total_weeks-driven x range) all green. 71/71 pytest passing; AST guard 4/4. Canonical seed=42: variance ratio 35.38, per-echelon R=3.43/W=12.81/D=29.27/F=35.38 (monotonic upstream), cost ledger exact reconciliation. Plan 03-02 unblocked.
+Resume file: .planning/phases/03-debrief-charts-narrative/03-02-PLAN.md
