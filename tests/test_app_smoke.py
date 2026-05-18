@@ -27,7 +27,10 @@ Notes on the 1.57.0 AppTest API discovered while writing these tests:
   submit), so ``at.button[0]``.
 - On the debrief screen the only button is "Play again".
 """
+import pytest
 from streamlit.testing.v1 import AppTest
+
+from beergame.engine.state import Role
 
 
 def test_first_visit_lands_on_rules():
@@ -118,3 +121,105 @@ def test_week_36_submission_transitions_to_done():
     debrief_buttons = [b.label for b in at.button]
     assert "Play again" in debrief_buttons
     assert not at.exception
+
+
+def test_debrief_renders_with_real_content_after_36_weeks_as_retailer():
+    """Phase 3 / Plan 02 / DEB-01..06: after a 36-week canonical RETAILER
+    playthrough, the rewritten debrief view renders every Phase-3 element
+    without exception:
+
+    - Headline ``st.metric`` labeled "Bullwhip amplification" (DEB-03).
+    - ``st.subheader`` "Cost breakdown" (DEB-04).
+    - ``st.subheader`` "What just happened" (DEB-05).
+    - ``st.button`` "Play again" (DEB-06).
+
+    NOTE on AppTest limits (RESEARCH.md Pitfall 6): AppTest CANNOT inspect
+    Plotly charts (``at.plotly_chart`` returns UnknownElement). The chart
+    presence is covered by ``not at.exception`` here and structurally by
+    ``tests/test_charts_orders_inventory.py`` at the go.Figure level.
+    """
+    at = AppTest.from_file("app.py", default_timeout=30).run()
+    at.button[0].click()
+    at.run()  # rules -> setup
+    at.button[0].click()
+    at.run()  # setup -> playing
+
+    for _ in range(36):
+        at.number_input[0].set_value(4)
+        at.button[0].click()
+        at.run()
+
+    assert at.session_state.phase == "done"
+    assert not at.exception, (
+        f"Debrief rendered an exception: {[str(e) for e in at.exception]}"
+    )
+
+    metric_labels = [m.label for m in at.metric]
+    assert any("Bullwhip amplification" in lbl for lbl in metric_labels), (
+        f"Headline metric missing. Got labels: {metric_labels}"
+    )
+
+    subheader_values = [s.value for s in at.subheader]
+    assert any("Cost breakdown" in v for v in subheader_values), (
+        f"Cost breakdown subheader missing. Got: {subheader_values}"
+    )
+    assert any("What just happened" in v for v in subheader_values), (
+        f"Narrative subheader missing. Got: {subheader_values}"
+    )
+
+    button_labels = [b.label for b in at.button]
+    assert "Play again" in button_labels, (
+        f"Play again button missing. Got: {button_labels}"
+    )
+
+
+@pytest.mark.parametrize(
+    "role_name",
+    ["RETAILER", "WHOLESALER", "DISTRIBUTOR", "FACTORY"],
+)
+def test_debrief_renders_for_each_player_role(role_name):
+    """DEB-05 + AppTest end-to-end: a 36-week playthrough as each of the
+    four player roles routes to the debrief and the narrative module
+    renders without exception. Verifies all four templates are valid
+    format strings and all interpolations resolve at runtime.
+
+    The player role is set via ``at.session_state.player_role`` BEFORE
+    clicking the setup form's "Start game" submit (the radio key in
+    setup.py is bound to ``player_role``, so this is the supported
+    pattern when the AppTest radio accessor doesn't accept the Role enum
+    directly).
+    """
+    at = AppTest.from_file("app.py", default_timeout=30).run()
+    at.button[0].click()
+    at.run()  # rules -> setup
+
+    # Set the player role via session_state, then submit setup form.
+    at.session_state.player_role = Role[role_name]
+    at.button[0].click()
+    at.run()  # setup -> playing
+    assert at.session_state.phase == "playing"
+    assert at.session_state.game.player_role == Role[role_name]
+
+    for _ in range(36):
+        at.number_input[0].set_value(4)
+        at.button[0].click()
+        at.run()
+
+    assert at.session_state.phase == "done", (
+        f"{role_name}: expected phase=='done' after 36 weeks"
+    )
+    assert not at.exception, (
+        f"{role_name}: debrief raised: {[str(e) for e in at.exception]}"
+    )
+
+    # Sanity-check the narrative section header rendered (the narrative
+    # module ran successfully for this role).
+    subheader_values = [s.value for s in at.subheader]
+    assert any("What just happened" in v for v in subheader_values), (
+        f"{role_name}: narrative subheader missing"
+    )
+
+    button_labels = [b.label for b in at.button]
+    assert "Play again" in button_labels, (
+        f"{role_name}: Play again button missing"
+    )
