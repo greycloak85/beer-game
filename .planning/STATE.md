@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A player completes one Beer Game round in one sitting and *sees* the bullwhip effect emerge in the post-game debrief — charts and narrative make the lesson land without an instructor in the room.
-**Current focus:** Phase 4 — Deploy to Streamlit Community Cloud (Plan 01 COMPLETE, Plan 02 next)
+**Current focus:** Phase 4 — Deploy to Streamlit Community Cloud (COMPLETE — DEPLOY-01 verified; DEPLOY-02 user-verified after share.streamlit.io connect)
 
 ## Current Position
 
-Phase: 4 of 4 (Deploy to Streamlit Community Cloud) — IN PROGRESS
-Plan: 1 of 2 complete in current phase
-Status: Phase 4 Plan 01 COMPLETE — deploy metadata committed (requirements.txt with streamlit==1.57.0 + plotly==6.7.0; .gitignore extended with .streamlit/secrets.toml + uv.lock + venv/ + OS cruft; README.md with how-to-play + 4 bullet rules + cold-start note + Sterman 1989 credit + live-app placeholder for Plan 02 to backfill; .python-version verified at 3.12). pytest still 82/82 green. Plan 02 (gh repo create → Streamlit Cloud connect → live URL backfill → canonical playthrough) is the final plan.
-Last activity: 2026-05-18 — Completed Plan 04-01 (requirements.txt exact 2-line pin; .gitignore 6→14 entries covering all DEPLOY-06 exclusions; README.md 68 lines / 8 sections / 400 words including stdlib-venv local-dev flow; .python-version unchanged at 3.12). pytest 82/82 before AND after; no app code changed (deploy artifacts are metadata-only). AST guard 4/4 still clean. No higher-priority dep file (uv.lock / Pipfile / environment.yml) in working tree, so CC's resolver lands on requirements.txt.
+Phase: 4 of 4 (Deploy to Streamlit Community Cloud) — COMPLETE
+Plan: 2 of 2 complete in current phase
+Status: Phase 4 COMPLETE — repo `greycloak85/beer-game` is live on GitHub (PUBLIC, isEmpty=false, default branch=master, default-branch HEAD = 164aea4). origin remote wired via HTTPS (https://github.com/greycloak85/beer-game.git) with gh-as-credential-helper configured globally. master fully pushed. 5/5 critical files verified on remote (requirements.txt, .python-version, README.md, app.py, .gitignore). 0/3 shadowing dep files on remote. User has the 7-step share.streamlit.io connect checklist embedded in 04-02-SUMMARY.md (and printed to stdout). gh auth context restored to bill-firmpro. pytest 82/82 throughout (no app code touched). DEPLOY-01 (public repo) verified; DEPLOY-02 (live URL reachable) becomes user-verified the moment they finish Step 5 of the checklist at share.streamlit.io.
+Last activity: 2026-05-18 — Completed Plan 04-02 (gh repo create greycloak85/beer-game --public; first --push attempt failed via SSH, auto-fixed under Rule 3: switched origin to HTTPS and wired `!gh auth git-credential` as credential helper; retry push succeeded; 5/5 verify checks green; gh auth restored to bill-firmpro). 1 minor deviation (SSH→HTTPS transport switch; documented in SUMMARY). Final repo URL: https://github.com/greycloak85/beer-game. Final commit on origin/master: 164aea4.
 
-Progress: [█████████░] 90%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 9
-- Average duration: 3.7min
-- Total execution time: 33min
+- Total plans completed: 10
+- Average duration: 3.8min
+- Total execution time: 38min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [█████████░] 90%
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
 | 2. UI Shell + Per-Turn Play | 3/3 ✅ | 9min | 3min |
 | 3. Debrief Charts + Narrative | 2/2 ✅ | 9min | 4.5min |
-| 4. Deploy to Streamlit Community Cloud | 1/2 | 5min | 5min |
+| 4. Deploy to Streamlit Community Cloud | 2/2 ✅ | 10min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files), 03-02 (4min, 3 tasks, 5 files), 04-01 (5min, 3 tasks, 4 files)
-- Trend: steady velocity, Phases 1+2+3 all COMPLETE + Phase 4 Plan 01 (deploy metadata) shipped; 82/82 tests passing throughout (deploy artifacts add metadata only, no app code changed); AST guard still 4/4 clean; requirements.txt now pins streamlit==1.57.0 + plotly==6.7.0 for Streamlit Cloud; .gitignore now blocks .streamlit/secrets.toml + uv.lock; README.md shipped with how-to-play, cold-start note, Sterman 1989 credit, and live-URL placeholder for Plan 02 to backfill
+- Last 5 plans: 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files), 03-02 (4min, 3 tasks, 5 files), 04-01 (5min, 3 tasks, 4 files), 04-02 (5min, 3 tasks, 1 file)
+- Trend: ALL 4 PHASES COMPLETE. 10 plans shipped across 4 phases in ~38min total. 82/82 tests passing throughout (deploy artifacts and remote-state changes never touched app code); AST guard still 4/4 clean. greycloak85/beer-game is now PUBLIC on GitHub with master pushed; user has the share.streamlit.io connect checklist to finish the live-URL step in ~90s.
 
 *Updated after each plan completion*
 
@@ -49,6 +49,7 @@ Progress: [█████████░] 90%
 | Phase 03-debrief-charts-narrative P01 | 5min | 3 tasks | 6 files |
 | Phase 03-debrief-charts-narrative P02 | 4min | 3 tasks | 5 files |
 | Phase 04-deploy-streamlit-cloud P01 | 5min | 3 tasks | 4 files |
+| Phase 04-deploy-streamlit-cloud P02 | 5min | 3 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -108,17 +109,28 @@ Recent decisions affecting current work:
 - [Phase 04-deploy-streamlit-cloud]: `.gitignore` extended to 14 entries: preserved Plan 01-01's `__pycache__/`, `*.pyc`, `*.egg-info/`, `.pytest_cache/`, `.ruff_cache/`, `.venv/`; added `venv/`, `.streamlit/secrets.toml` (DEPLOY-06 defensive), `uv.lock` (must never shadow requirements.txt), and tasteful OS/editor cruft (`.DS_Store`, `.idea/`, `.vscode/`, `*.swp`). `.streamlit/config.toml` deliberately NOT gitignored — Plan 02-02 ships it.
 - [Phase 04-deploy-streamlit-cloud]: README.md uses stdlib-venv local-dev flow (`python3.12 -m venv .venv` + `.venv/bin/pip install -r requirements.txt -r requirements-dev.txt` + `.venv/bin/streamlit run app.py`), NOT the uv-flavored variant. Env-notes objective overrode the plan template; both forms work, stdlib `venv` is universal.
 - [Phase 04-deploy-streamlit-cloud]: README live-URL placeholder is the literal string `_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_` — Plan 02 can grep for "pending Streamlit Community Cloud deploy" (unique substring) to find the exact swap target. Plan 02's URL-backfill commit goes in a separate `docs(04-02): backfill live app URL` commit.
+- [Phase 04-deploy-streamlit-cloud]: greycloak85's gh account reports `git_protocol: ssh` but has no SSH key configured locally — so `gh repo create … --push` succeeds at the repo-create step (the repo IS created on GitHub) but fails at the push step with `Permission denied (publickey)`. Auto-fix (Rule 3) is canonical: `git remote set-url origin https://github.com/greycloak85/beer-game.git` then `git config --global --add credential.https://github.com.helper '!gh auth git-credential'` then `git push -u origin master`. Future greycloak85 pushes from this machine work over HTTPS via the gh credential helper. SSH push will resume working if/when the user adds an SSH key for greycloak85.
+- [Phase 04-deploy-streamlit-cloud]: gh auth context was switched to greycloak85 during Plan 04-02 then restored to bill-firmpro at plan end (env-notes requirement). Future plans on this machine that need greycloak85 again MUST switch + restore explicitly; don't assume bill-firmpro stays active mid-plan.
+- [Phase 04-deploy-streamlit-cloud]: Streamlit Cloud connect step is the ONE remaining manual step in the whole project — embedded as a verbatim 7-step checklist in 04-02-SUMMARY.md (and printed to stdout at plan end). User does the final ~90s of clicks at share.streamlit.io; DEPLOY-02 (live URL) becomes verifiable the moment that finishes. After deploy, the only follow-up is a single `docs(04-02): link README to live app URL` commit replacing the README placeholder.
 
 ### Pending Todos
 
-Phase 4 Plan 02 (final plan): (1) `gh repo create greycloak85/beer-game --public --source . --push`; (2) connect repo to Streamlit Community Cloud → "New app" → set Advanced settings → Python version = 3.12 → Deploy; (3) grep+replace the "_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_" placeholder in README.md with the deployed share.streamlit.io URL, commit `docs(04-02): backfill live app URL`; (4) full 36-week canonical playthrough on the deployed URL (pick Retailer, default seed, verify debrief renders + bullwhip ratio matches local).
+**For the user (~90s of clicks + a 30s commit):**
+1. Open https://share.streamlit.io, sign in as greycloak85, click "Create app" → "Deploy a public app from GitHub".
+2. Set Repository=`greycloak85/beer-game`, Branch=`master`, Main file=`app.py`.
+3. Open Advanced settings → set Python version = **3.12** (the dropdown is authoritative). Secrets empty.
+4. Click Deploy. Wait ~60–120s for the first build.
+5. Sanity-check the live URL by playing one full 36-week game (variance bullwhip ratio should be ≈ 35.38× at seed=42).
+6. Copy the live URL into README.md's "Play it" section (replace the placeholder `_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_`), commit `docs(04-02): link README to live app URL`, and push.
+
+The full checklist is verbatim in `.planning/phases/04-deploy-streamlit-cloud/04-02-SUMMARY.md`. No further automated plans are queued; the project is shipped.
 
 ### Blockers/Concerns
 
-None. Phase 4 Plan 01 COMPLETE — all 4 deploy artifacts (`requirements.txt`, `.python-version`, `.gitignore`, `README.md`) committed at repo root. All Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ + narrative/ also streamlit-free by design). 82/82 pytest passing (no app code changed — deploy artifacts are metadata only). No numpy/pandas anywhere in beergame/. No higher-priority dep file in working tree (no uv.lock / Pipfile / environment.yml), so Streamlit Cloud's resolver will land on `requirements.txt`. Plan 02 is the final plan and is artifact-light (CLI + manual deploy steps + a single grep+replace commit).
+None. Phase 4 COMPLETE. greycloak85/beer-game is live on GitHub (PUBLIC, isEmpty=false, master pushed). origin wired via HTTPS+gh-credential-helper. All Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks, variance-based ratio = 35.38). AST guard 4/4 (engine/ai/config/charts/narrative layers streamlit-free; only app.py + beergame/views/ import streamlit). 82/82 pytest passing (no app code changed — Plan 02 is remote-state only). gh auth restored to bill-firmpro. The only remaining task is the user's 90-second share.streamlit.io connect flow (see Pending Todos above).
 
 ## Session Continuity
 
-Last session: 2026-05-18T22:05:22Z
-Stopped at: Completed 04-deploy-streamlit-cloud/04-01-PLAN.md — Phase 4 Plan 01 ships the four Streamlit Cloud deploy artifacts. requirements.txt at repo root with exactly `streamlit==1.57.0` + `plotly==6.7.0` (the deploy-time dep file CC's uv-backed resolver reads). .python-version verified unchanged at `3.12`. .gitignore extended 6→14 entries (preserved all Plan 01-01 entries; added `.streamlit/secrets.toml`, `uv.lock`, `venv/`, `.DS_Store`, `.idea/`, `.vscode/`, `*.swp`); `.streamlit/config.toml` deliberately NOT ignored. README.md 68 lines / 8 sections: H1 "Beer Game" + tagline + "Play it" with `_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_` placeholder + "How to play" (4 bullets) + cost asymmetry + "What is the bullwhip effect?" 2-paragraph primer + "Running locally" (stdlib venv flow) + focused-pytest subset section + "Tech stack" pin block + "Cold-start note" (~30s) + "Credits" (Sterman 1989 + MIT Sloan link). pytest 82/82 before AND after; AST guard 4/4 still clean; `import app` clean. 1 minor deviation (README section ordering preference; no behavioural change). DEPLOY-03 + DEPLOY-04 + DEPLOY-05 + DEPLOY-06 all satisfied on disk; DEPLOY-01 + DEPLOY-02 are Plan 02's responsibility. Commits: e5bc3dc (requirements.txt) + e3047fa (.gitignore) + 2ed6538 (README.md).
-Resume file: .planning/phases/04-deploy-streamlit-cloud/04-02-PLAN.md (final plan — gh repo create + Streamlit Cloud connect + live URL backfill + canonical playthrough)
+Last session: 2026-05-18T22:12:00Z
+Stopped at: Completed 04-deploy-streamlit-cloud/04-02-PLAN.md — Phase 4 COMPLETE. greycloak85/beer-game live on GitHub (PUBLIC, isEmpty=false, default branch=master, HEAD=164aea4). origin remote wired via HTTPS to https://github.com/greycloak85/beer-game.git; gh-as-credential-helper configured globally (Rule 3 auto-fix for the SSH-key-missing case — original `gh repo create --push` failed via SSH, auto-fixed in <30s). 5/5 critical files verified on remote (requirements.txt, .python-version, README.md, app.py, .gitignore). 0/3 shadowing dep files (uv.lock, Pipfile, environment.yml) on remote. SUMMARY at .planning/phases/04-deploy-streamlit-cloud/04-02-SUMMARY.md contains the verbatim 7-step share.streamlit.io connect checklist (also printed to stdout). gh auth context restored to bill-firmpro. pytest 82/82 throughout. DEPLOY-01 verified; DEPLOY-02 becomes user-verified after they finish the connect flow. No task-level commits in this plan (Task 1 verification-only; Task 2 remote-state change; Task 3 SUMMARY+final metadata commit).
+Resume file: (none — project complete; user owns the final share.streamlit.io connect step per 04-02-SUMMARY.md)
