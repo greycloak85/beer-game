@@ -5,36 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A player completes one Beer Game round in one sitting and *sees* the bullwhip effect emerge in the post-game debrief — charts and narrative make the lesson land without an instructor in the room.
-**Current focus:** Phase 2 — UI Shell + Per-Turn Play
+**Current focus:** Phase 3 — Debrief Charts + Narrative (Phase 2 COMPLETE)
 
 ## Current Position
 
-Phase: 2 of 4 (UI Shell + Per-Turn Play)
-Plan: 2 of 3 complete in current phase
-Status: Plan 02-02 COMPLETE (Streamlit app shell + views package + dev deps); Plan 02-03 unblocked
-Last activity: 2026-05-18 — Completed Plan 02-02 (app.py phase router, beergame/views/ package, .streamlit/config.toml; 51/51 tests pass; AST guard still clean; streamlit run app.py serves 200)
+Phase: 2 of 4 (UI Shell + Per-Turn Play) — COMPLETE
+Plan: 3 of 3 complete in current phase
+Status: Phase 2 COMPLETE — full per-turn play view + AppTest smoke coverage shipped; Phase 3 (Debrief Charts + Narrative) unblocked
+Last activity: 2026-05-18 — Completed Plan 02-03 (beergame/views/play.py full per-turn UI with 5 metrics + Plotly mini-chart + st.form order input; tests/test_app_smoke.py with 5 AppTest tests; 56/56 pytest green; AST guard 4/4; streamlit run app.py drives a complete 36-week playthrough ending on the debrief placeholder)
 
-Progress: [█████░░░░░] 50%
+Progress: [██████░░░░] 60%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5
+- Total plans completed: 6
 - Average duration: 3.2min
-- Total execution time: 16min
+- Total execution time: 19min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
-| 2. UI Shell + Per-Turn Play | 2/3 | 6min | 3min |
+| 2. UI Shell + Per-Turn Play | 3/3 ✅ | 9min | 3min |
 | 3. Debrief Charts + Narrative | 0/TBD | — | — |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (5min, 2 tasks, 19 files), 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files)
-- Trend: steady velocity, Phase 1 complete, Phase 2 two-thirds done, 51/51 tests passing, AST guard still clean
+- Last 5 plans: 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files)
+- Trend: steady velocity, Phase 1 + Phase 2 both COMPLETE, 56/56 tests passing (added 5 AppTest smokes), AST guard still 4/4 clean
 
 *Updated after each plan completion*
 
@@ -45,6 +45,7 @@ Progress: [█████░░░░░] 50%
 | Phase 01-simulation-engine-ai P03 | 3min | 2 tasks | 2 files |
 | Phase 02-ui-shell-per-turn-play P01 | 3min | 2 tasks | 4 files |
 | Phase 02-ui-shell-per-turn-play P02 | 3min | 3 tasks | 8 files |
+| Phase 02-ui-shell-per-turn-play P03 | 3min | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -80,17 +81,22 @@ Recent decisions affecting current work:
 - [Phase 02-ui-shell-per-turn-play]: streamlit + plotly added to `requirements-dev.txt`, NOT `requirements.txt`. Phase 4 owns the deploy-time pin file. Both pins: `streamlit==1.57.0`, `plotly==6.7.0`.
 - [Phase 02-ui-shell-per-turn-play]: `reset_game` deliberately preserves `seen_rules` so in-session replay skips the primer; browser refresh still wipes everything (Streamlit default), preserving SETUP-01's first-visit invariant across browser sessions.
 - [Phase 02-ui-shell-per-turn-play]: Setup-form widgets use `key=` ONLY (no `value=`) — passing both raises StreamlitAPIException. The session_state slot supplies the default; widget reads from + writes to that slot directly.
+- [Phase 02-ui-shell-per-turn-play]: PLAY-03 enforced in play.py: render() reads cross-station data ONLY via `build_station_view(state, state.player_role)`. The only direct `state.stations[i]` read is for the player's OWN station (i == player_role.value) for `orders_placed_history` (intrinsically the player's own data — they placed the orders). NO reads of other stations' state, NO reads of `state.customer_demand_history`. Future plans MUST honor this boundary or document why their use case differs.
+- [Phase 02-ui-shell-per-turn-play]: Plotly chart calls in 1.57.0 use `st.plotly_chart(fig, key="...", width="stretch")` — NEVER `use_container_width=True` (deprecated, removed-after-grace in 1.57.0). Stable `key=` gives the chart identity across reruns so zoom/hover state survives (Pitfall 3 flicker mitigation).
+- [Phase 02-ui-shell-per-turn-play]: Per-turn order form: `st.form("turn_form", clear_on_submit=True)` wrapping `st.number_input(min_value=0, step=1, value=4, key="order_input")` + `st.form_submit_button("Advance week", on_click=on_submit, type="primary")`. NO `max_value` (AF-4: capping silently truncates canonical bullwhip orders that reach 30-80+ at Factory). NO `args=` on the submit button (Pitfall 2: args captures value at render time, not submit time — the callback reads `st.session_state["order_input"]`).
+- [Phase 02-ui-shell-per-turn-play]: Mini-chart x-axis bounded by `len(orders_placed_history)`, NEVER hard-coded to 36 (Pitfall 18 — would imply future weeks the player hasn't played).
+- [Phase 02-ui-shell-per-turn-play]: AppTest in Streamlit 1.57.0 exposes `st.form_submit_button` via `at.button[i]` (the same `at.button` collection holds both `st.button` AND `st.form_submit_button` widgets, indexed by render order). There is NO `at.form_submit_button` accessor. Future test plans MUST use `at.button[i]` to reach form submits.
 
 ### Pending Todos
 
-None — Plan 02-02 complete. Next: Plan 02-03 (per-turn play view) is unblocked. Plan 03 replaces `beergame/views/play.py`'s body with real metrics + mini-chart + order form (key="order_input").
+None — Plan 02-03 complete; Phase 2 COMPLETE. Next: Phase 3 (Debrief Charts + Narrative) is fully unblocked. Phase 3 will replace `beergame/views/debrief.py`'s placeholder body with the real charts (orders-placed across all 4 stations, inventory-vs-backlog, cumulative cost) + narrative explaining the bullwhip the player just produced.
 
 ### Blockers/Concerns
 
-None. All Phase 1 invariants intact (51/51 tests pass; ratio = 2.000; AST guard 4/4 clean). Streamlit smoke test passes (HTTP 200, _stcore/health = ok).
+None. Phase 1 invariants still intact (bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free). 56/56 pytest passing (51 prior + 5 new AppTest smoke). `streamlit run app.py` smoke test passes (HTTP 200, `_stcore/health` = ok), full 36-week playthrough completes without exceptions and lands on the debrief placeholder.
 
 ## Session Continuity
 
-Last session: 2026-05-18T21:00:05Z
-Stopped at: Completed 02-ui-shell-per-turn-play/02-02-PLAN.md — Streamlit app shell: app.py phase router + four callbacks (go_to_setup, start_game, submit_order, reset_game); beergame/views/ package (rules + setup + play stub + debrief); .streamlit/config.toml; requirements-dev.txt pinning streamlit==1.57.0 + plotly==6.7.0. 51/51 tests, AST guard 4/4, smoke test HTTP 200.
-Resume file: .planning/phases/02-ui-shell-per-turn-play/02-03-PLAN.md
+Last session: 2026-05-18T21:06:59Z
+Stopped at: Completed 02-ui-shell-per-turn-play/02-03-PLAN.md — Per-turn play view fully implemented: 5 metrics (inventory, backlog, last_shipment_received, last_order_received, supply_line) + Plotly orders-history mini-chart (width="stretch", key="player_order_history") + st.form with st.number_input(min_value=0, step=1, value=4, key="order_input") + "Advance week" form_submit_button. PLAY-03 enforced — cross-station reads ONLY via build_station_view. 5 AppTest smoke tests cover: rules->setup, setup->playing, submit-advances-week, week-36-transitions-done, first-visit-sanity. 56/56 pytest green; AST guard 4/4. Phase 2 COMPLETE.
+Resume file: .planning/phases/03-debrief-charts-narrative/ (Phase 3 to be planned)
