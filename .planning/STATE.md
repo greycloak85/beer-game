@@ -10,31 +10,31 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 ## Current Position
 
 Phase: 2 of 4 (UI Shell + Per-Turn Play)
-Plan: 1 of 3 complete in current phase
-Status: Plan 02-01 COMPLETE (engine API extended for shipments_received); Plan 02-02 unblocked
-Last activity: 2026-05-18 — Completed Plan 02-01 (additive engine API: shipments_received_history + last_shipment_received; 51/51 tests pass; bullwhip ratio still 2.000)
+Plan: 2 of 3 complete in current phase
+Status: Plan 02-02 COMPLETE (Streamlit app shell + views package + dev deps); Plan 02-03 unblocked
+Last activity: 2026-05-18 — Completed Plan 02-02 (app.py phase router, beergame/views/ package, .streamlit/config.toml; 51/51 tests pass; AST guard still clean; streamlit run app.py serves 200)
 
-Progress: [████░░░░░░] 33%
+Progress: [█████░░░░░] 50%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 3.3min
-- Total execution time: 13min
+- Total plans completed: 5
+- Average duration: 3.2min
+- Total execution time: 16min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
-| 2. UI Shell + Per-Turn Play | 1/3 | 3min | 3min |
+| 2. UI Shell + Per-Turn Play | 2/3 | 6min | 3min |
 | 3. Debrief Charts + Narrative | 0/TBD | — | — |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (5min, 2 tasks, 19 files), 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files)
-- Trend: steady velocity, Phase 1 complete + Phase 2 underway with 51/51 tests passing
+- Last 5 plans: 01-01 (5min, 2 tasks, 19 files), 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files)
+- Trend: steady velocity, Phase 1 complete, Phase 2 two-thirds done, 51/51 tests passing, AST guard still clean
 
 *Updated after each plan completion*
 
@@ -44,6 +44,7 @@ Progress: [████░░░░░░] 33%
 | Phase 01-simulation-engine-ai P02 | 2min | 2 tasks | 4 files |
 | Phase 01-simulation-engine-ai P03 | 3min | 2 tasks | 2 files |
 | Phase 02-ui-shell-per-turn-play P01 | 3min | 2 tasks | 4 files |
+| Phase 02-ui-shell-per-turn-play P02 | 3min | 3 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -70,17 +71,26 @@ Recent decisions affecting current work:
 - [Phase 02-ui-shell-per-turn-play]: New transient `_pending_shipment_received` (compare=False, repr=False) carries step-1's `incoming_shipments[0]` into step-3's history append. Preserves the "all histories grow exactly once per tick, in step 3" invariant; mirrors the existing `_demand_to_fill` / `_shipped_this_tick` pattern.
 - [Phase 02-ui-shell-per-turn-play]: `StationView.last_shipment_received: int = 0` (defaulted) — required so RetailerView's existing `customer_demand: int = 0` keeps a legal frozen-dataclass subclass field order. Empty-history fallback to EQUILIBRIUM_THROUGHPUT lives in `build_station_view`, not on the dataclass default.
 - [Phase 02-ui-shell-per-turn-play]: Plan 02-01 verified zero behavioral drift — bullwhip ratio still exactly 2.0000 under seed=42, equilibrium inventory still 12 for 36 weeks, AST guard still streamlit-clean. Future contributors forbidden from re-deriving `last_shipment_received` in the view layer.
+- [Phase 02-ui-shell-per-turn-play]: app.py lives at repo ROOT, not under beergame/. This is the path `streamlit run` and Streamlit Cloud both target; Phase 4 deploy is a no-op for app discovery.
+- [Phase 02-ui-shell-per-turn-play]: Streamlit import boundary enforced — only `app.py` and `beergame/views/*` import streamlit. `beergame/{engine,ai,config}/*` remain pure-Python (AST guard 4/4 still passes). Future contributors forbidden from importing streamlit anywhere under the engine layer.
+- [Phase 02-ui-shell-per-turn-play]: Phase-router pattern — single `st.session_state.phase` string dispatches to exactly one `view.render()` per rerun (rules/setup/playing/done). Top-level dispatch is the ONLY place phase is read from session_state; all writes go through the four callbacks (go_to_setup, start_game, submit_order, reset_game).
+- [Phase 02-ui-shell-per-turn-play]: Sterman agent persistence — `start_game` instantiates `ShipmentAnchorAndAdjustAgent` ONCE per non-player Role and stores the dict in `session_state.ai_agents`. The same dict is threaded through every `advance_week` call so `smoothed_demand` accumulates across ticks (Pitfall 8). Future contributors MUST NOT re-instantiate agents in `submit_order`.
+- [Phase 02-ui-shell-per-turn-play]: `submit_order` reads the player's order via `st.session_state["order_input"]`, NEVER via `args=` (Pitfall 2: args captures the value at form-render time, not submit time). Plan 03's play view MUST use the matching `key="order_input"` on its `st.number_input`.
+- [Phase 02-ui-shell-per-turn-play]: `play.py` shipped as a Plan-02 stub to close the import graph; Plan 03 replaces the body. The on_submit callback contract is already locked (reads `st.session_state["order_input"]`).
+- [Phase 02-ui-shell-per-turn-play]: streamlit + plotly added to `requirements-dev.txt`, NOT `requirements.txt`. Phase 4 owns the deploy-time pin file. Both pins: `streamlit==1.57.0`, `plotly==6.7.0`.
+- [Phase 02-ui-shell-per-turn-play]: `reset_game` deliberately preserves `seen_rules` so in-session replay skips the primer; browser refresh still wipes everything (Streamlit default), preserving SETUP-01's first-visit invariant across browser sessions.
+- [Phase 02-ui-shell-per-turn-play]: Setup-form widgets use `key=` ONLY (no `value=`) — passing both raises StreamlitAPIException. The session_state slot supplies the default; widget reads from + writes to that slot directly.
 
 ### Pending Todos
 
-None — Plan 02-01 complete. Next: Plan 02-02 (UI shell) is unblocked.
+None — Plan 02-02 complete. Next: Plan 02-03 (per-turn play view) is unblocked. Plan 03 replaces `beergame/views/play.py`'s body with real metrics + mini-chart + order form (key="order_input").
 
 ### Blockers/Concerns
 
-None. All Phase 1 invariants intact (51/51 tests pass; ratio = 2.000; AST guard clean).
+None. All Phase 1 invariants intact (51/51 tests pass; ratio = 2.000; AST guard 4/4 clean). Streamlit smoke test passes (HTTP 200, _stcore/health = ok).
 
 ## Session Continuity
 
-Last session: 2026-05-18T20:53:22Z
-Stopped at: Completed 02-ui-shell-per-turn-play/02-01-PLAN.md — Additive engine API for PLAY-01: `StationState.shipments_received_history`, `StationView.last_shipment_received` (default 0), `_pending_shipment_received` transient. 7 new regression tests; full suite 44 -> 51 passing; bullwhip ratio still 2.0000; zero streamlit imports.
-Resume file: .planning/phases/02-ui-shell-per-turn-play/02-02-PLAN.md
+Last session: 2026-05-18T21:00:05Z
+Stopped at: Completed 02-ui-shell-per-turn-play/02-02-PLAN.md — Streamlit app shell: app.py phase router + four callbacks (go_to_setup, start_game, submit_order, reset_game); beergame/views/ package (rules + setup + play stub + debrief); .streamlit/config.toml; requirements-dev.txt pinning streamlit==1.57.0 + plotly==6.7.0. 51/51 tests, AST guard 4/4, smoke test HTTP 200.
+Resume file: .planning/phases/02-ui-shell-per-turn-play/02-03-PLAN.md
