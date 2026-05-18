@@ -1,0 +1,13 @@
+# Streamlit app config. Phase 2 sets just enough to brand the page;
+# Phase 4 may extend with serverPort overrides etc.
+
+[theme]
+base = "light"
+primaryColor = "#7B3F00"          # amber/beer color — accent for primary buttons
+
+[server]
+headless = true                    # safe default for CLI / containers; Streamlit Cloud
+                                   # overrides as needed.
+
+[browser]
+gatherUsageStats = false           # don't ship usage telemetry to Streamlit Inc by default
