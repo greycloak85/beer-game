@@ -59,7 +59,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The debrief displays a per-station cost breakdown table with holding cost, backorder cost, and total — and the totals reconcile with the engine's internal cost ledger.
   4. The debrief shows a ≤200-word narrative paragraph adapted to the player's chosen station that names the bullwhip and points to where it shows up in their game.
   5. A "Play again" button on the debrief returns the user to the setup screen and resets `st.session_state` so a fresh game can begin.
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves (sequential — Plan 02 imports `build_four_panel` from Plan 01's new `beergame/charts/` package and the three new functions from `engine/metrics.py`)
+- [ ] 03-01-PLAN.md — Pure-Python metrics + pure-Plotly chart: extend `engine/metrics.py` with variance ratio + per-echelon amplification + cost breakdown; create `beergame/charts/orders_inventory.py::build_four_panel`; add `canonical_done_state` fixture + ~15 unit tests (DEB-01..04)
+- [ ] 03-02-PLAN.md — Narrative templates + view rewrite + AppTest smoke: create `beergame/narrative/` (4 station templates), rewrite `beergame/views/debrief.py` (headline metric + chart + tiles + table + narrative + Play again), extend `tests/test_app_smoke.py` with parametrized debrief-renders test (DEB-01..06)
 
 ### Phase 4: Deploy to Streamlit Community Cloud
 **Goal**: The app is live at a public Streamlit Community Cloud URL, deployed from the public GitHub repo with pinned dependencies and Python 3.12, and reachable by anyone with the link.
@@ -82,10 +84,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Simulation Engine + AI | 0/3 | Complete    | 2026-05-18 |
 | 2. UI Shell + Per-Turn Play | 0/3 | Complete    | 2026-05-18 |
-| 3. Debrief Charts + Narrative | 0/TBD | Not started | - |
+| 3. Debrief Charts + Narrative | 0/2 | Not started | - |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-05-18*
 *Phase 1 planned: 2026-05-18 — 3 plans in 3 waves covering ENG-01..10 + AI-01..04*
 *Phase 2 planned: 2026-05-18 — 3 plans in 3 waves covering SETUP-01..04 + PLAY-01..05; engine extension `shipments_received_history` precedes UI work*
+*Phase 3 planned: 2026-05-18 — 2 plans in 2 waves covering DEB-01..06; Plan 01 ships pure-Python metrics + pure-Plotly chart builder + unit tests, Plan 02 ships narrative + view rewrite + AppTest smoke*
