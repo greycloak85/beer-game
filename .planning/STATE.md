@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-05-18)
 
 ## Current Position
 
-Phase: 3 of 4 (Debrief Charts + Narrative) — IN PROGRESS
-Plan: 1 of 2 complete in current phase
-Status: Plan 03-01 COMPLETE — debrief metrics (variance_bullwhip_ratio + per_echelon_amplification + cost_breakdown) + 4-panel chart builder shipped; Plan 03-02 (debrief view assembly + narrative) ready to plan/execute
-Last activity: 2026-05-18 — Completed Plan 03-01 (engine/metrics.py extended with 4 new public symbols including CostRow; beergame/charts package with build_four_panel(state) -> go.Figure containing 8 traces + week-5 vline; canonical_done_state fixture mirrors GATE 2; 71/71 pytest green; AST guard 4/4 clean; canonical seed=42 variance ratio = 35.38, monotonic upstream amplification R=3.43/W=12.81/D=29.27/F=35.38)
+Phase: 3 of 4 (Debrief Charts + Narrative) — COMPLETE
+Plan: 2 of 2 complete in current phase
+Status: Phase 3 COMPLETE — Plan 03-02 shipped (beergame/narrative package with 4 station templates ≤200 words; views/debrief.py rewritten end-to-end with title + 2dp headline st.metric + 4-panel chart + 4 per-echelon tiles + cost st.table + narrative st.markdown + Play again button; AppTest smoke extended with 5 new tests covering all 4 player roles). DEB-01..DEB-06 all visually delivered. Phase 4 (Streamlit Community Cloud deploy) ready to plan/execute.
+Last activity: 2026-05-18 — Completed Plan 03-02 (beergame/narrative/__init__.py + templates.py with 4 static format-string templates keyed by Role; views/debrief.py full Phase-3 layout: st.title + st.metric "Bullwhip amplification 35.38×" + st.plotly_chart key="debrief_four_panel" width="stretch" + st.columns(4) of st.metric + st.table cost breakdown + st.markdown(narrative_for(state)) + st.button "Play again"; tests/test_narrative.py 6 pure-Python tests; tests/test_app_smoke.py extended from 5 to 10 tests including parametrize over all 4 roles; 82/82 pytest green; AST guard 4/4 still clean; streamlit boots clean HTTP 200; per-role word counts R=127 / W=121 / D=124 / F=142 at canonical seed=42).
 
-Progress: [███████░░░] 70%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 3.4min
-- Total execution time: 24min
+- Total plans completed: 8
+- Average duration: 3.5min
+- Total execution time: 28min
 
 **By Phase:**
 
@@ -29,12 +29,12 @@ Progress: [███████░░░] 70%
 |-------|-------|-------|----------|
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
 | 2. UI Shell + Per-Turn Play | 3/3 ✅ | 9min | 3min |
-| 3. Debrief Charts + Narrative | 1/2 | 5min | 5min |
+| 3. Debrief Charts + Narrative | 2/2 ✅ | 9min | 4.5min |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
 
 **Recent Trend:**
-- Last 5 plans: 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files)
-- Trend: steady velocity, Phase 1 + Phase 2 COMPLETE, Phase 3 underway (Plan 1 of 2 shipped); 71/71 tests passing (15 new for metrics + charts); AST guard still 4/4 clean
+- Last 5 plans: 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files), 03-02 (4min, 3 tasks, 5 files)
+- Trend: steady velocity, Phases 1+2+3 all COMPLETE; 82/82 tests passing (71 prior + 6 new narrative + 5 new AppTest smoke for Plan 03-02); AST guard still 4/4 clean; streamlit run app.py boots clean (HTTP 200 on /_stcore/health)
 
 *Updated after each plan completion*
 
@@ -47,6 +47,7 @@ Progress: [███████░░░] 70%
 | Phase 02-ui-shell-per-turn-play P02 | 3min | 3 tasks | 8 files |
 | Phase 02-ui-shell-per-turn-play P03 | 3min | 2 tasks | 2 files |
 | Phase 03-debrief-charts-narrative P01 | 5min | 3 tasks | 6 files |
+| Phase 03-debrief-charts-narrative P02 | 4min | 3 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -95,17 +96,22 @@ Recent decisions affecting current work:
 - [Phase 03-debrief-charts-narrative]: `canonical_done_state` fixture in `tests/conftest.py` is session-scoped and uses ALL-Sterman (mirrors GATE 2's `_all_sterman_agents()`) — NOT player-plays-constant-4. Constant-4 Retailer absorbs the demand shock into its own backlog without changing orders PLACED, so Sterman at W/D/F sees flat orders_received forever and the bullwhip silently dies (variance returns 0.0). Future fixture additions in this phase MUST use simulate_full_game(all-Sterman) for canonical bullwhip assertions.
 - [Phase 03-debrief-charts-narrative]: Canonical seed=42 numbers (Plan 03-02 sanity-check reference): variance bullwhip ratio = 35.38, per-echelon R=3.43 / W=12.81 / D=29.27 / F=35.38 (monotonic upstream amplification), cost ledger R=$222.50 / W=$299.00 / D=$498.50 / F=$421.50 (all reconciling exactly via cost_history[-1]). Max-based ratio still 2.000 (Phase 1 GATE 2 intact).
 - [Phase 03-debrief-charts-narrative]: Plotly chart structure tested directly against `go.Figure` (`fig.data`, `fig.layout.shapes`, `fig.layout.annotations`, `fig.layout.xaxis4.title.text`) — NOT via AppTest, which returns UnknownElement for chart elements. Plan 03-02's view tests MUST use the same pattern for any chart-shape assertions; AppTest is reserved for transition smoke (debrief renders, "Play again" button present).
+- [Phase 03-debrief-charts-narrative]: `beergame/narrative/` is a NEW pure-Python package mirroring engine/ai/charts purity (no streamlit, no plotly). Public surface: `narrative_for(state) -> str`. Four templates keyed by `Role` live in `templates.py`; each is a static format-string ≤180 words pre-interpolation so it stays ≤200 words post (canonical seed=42 word counts R=127 / W=121 / D=124 / F=142). Templates escape `\$` so st.markdown doesn't interpret cost figures as LaTeX. NO LLM, NO random selection — deterministic by construction.
+- [Phase 03-debrief-charts-narrative]: Debrief headline displays 2 decimals (`{overall:.2f}×` → "35.38×") not 1 decimal — locked decision per Plan 03-02 environment notes. Per-echelon st.metric tiles also use 2dp for visual consistency. The narrative prose still uses 1dp (`{ratio:.1f}×`) because paragraph prose reads more cleanly at lower precision.
+- [Phase 03-debrief-charts-narrative]: AppTest parametrize-over-roles pattern: `@pytest.mark.parametrize("role_name", ["RETAILER", ...])` + write `at.session_state.player_role = Role[role_name]` before clicking the setup form's submit button. The setup view's radio is keyed to `player_role`, so this reuses the same `start_game` callback path the real user flow uses. Avoids the AppTest 1.57.0 question of how `at.radio[0].set_value(...)` accepts enum values.
+- [Phase 03-debrief-charts-narrative]: AppTest CANNOT inspect Plotly charts (returns UnknownElement). The load-bearing chart check at the AppTest layer is `not at.exception`; structural chart assertions belong in `tests/test_charts_orders_inventory.py` against `fig.data` / `fig.layout` directly. The AppTest smoke confirms the chart renders end-to-end without raising — and that's enough.
+- [Phase 03-debrief-charts-narrative]: `reset_game` in app.py covers all session-state keys; Plan 03-02 introduces NO new session-state keys (widget `key=` attributes only, which Streamlit manages internally). Future plans adding new session keys MUST extend `reset_game`'s tuple — Pitfall 10.
 
 ### Pending Todos
 
-Plan 03-02 (debrief view assembly + narrative). Needs to: (1) replace `beergame/views/debrief.py` placeholder body to render `build_four_panel` via `st.plotly_chart(fig, key="debrief_four_panel", width="stretch")`; (2) show variance_bullwhip_ratio as headline metric + per_echelon_amplification as four `st.metric` tiles + cost_breakdown as `st.table([{...}, ...])` (no pandas); (3) create `beergame/narrative/` package with four station-specific templates (DEB-05) interpolating overall ratio, per-echelon ratio, player station cost; (4) wire "Play again" to existing `app.py::reset_game` callback (DEB-06, already plumbed via `on_reset` param); (5) extend `tests/test_app_smoke.py` with a debrief-renders smoke + add unit tests for `narrative_for(state)` (≤200 words, mentions "bullwhip", contains player's role name).
+Phase 4 (Deploy to Streamlit Community Cloud). Needs to: (1) commit `requirements.txt` with `streamlit==1.57.0` and `plotly==6.7.0` pins (currently those pins live in `requirements-dev.txt` for local dev); (2) NOT commit `uv.lock` (Streamlit Cloud's dependency-file priority would pick it up; yanked transitives can wedge builds — Phase 4 locked decision); (3) verify `app.py` discovery at repo root (already correct path); (4) configure Streamlit Cloud to point at `app.py` and the main branch; (5) full canonical playthrough on deployed URL to confirm parity with local runs.
 
 ### Blockers/Concerns
 
-None. Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ also streamlit-free by design). 71/71 pytest passing (56 prior + 9 metrics + 6 charts). No numpy/pandas anywhere in beergame/. The 4-panel chart builder and three new metrics are unit-tested at the go.Figure / pure-function level — Plan 03-02 has a clean, tested foundation to assemble.
+None. Phase 3 COMPLETE. All Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ + narrative/ also streamlit-free by design). 82/82 pytest passing (71 prior + 6 narrative + 5 AppTest debrief smoke). No numpy/pandas anywhere in beergame/. Streamlit boots clean (HTTP 200 on /_stcore/health). DEB-01 through DEB-06 all visually delivered via the rewritten debrief view. Phase 4 has a clean, fully-tested foundation to deploy.
 
 ## Session Continuity
 
-Last session: 2026-05-18T21:35:11Z
-Stopped at: Completed 03-debrief-charts-narrative/03-01-PLAN.md — engine/metrics.py extended with variance_bullwhip_ratio + per_echelon_amplification + cost_breakdown (CostRow dataclass) alongside untouched Phase 1 peak_orders + bullwhip_ratio. NEW package beergame/charts/ with build_four_panel(state) -> go.Figure: 8 traces (4 stations × {orders, inventory}), 4 vertical-line shapes at x=5 (one per panel from row="all") each annotated "Customer demand: 4 → 8", shared x-axis, height=700, "Week" title on bottom panel only. canonical_done_state fixture (session-scoped, all-Sterman via simulate_full_game) replaces the broken constant-4-player approach (Rule 1 auto-fix — constant-4 Retailer kills the bullwhip signal). 15 new tests (9 metrics covering empty-history, canonical > 1.0, all 4 Role keys, monotonic F > R, tuple order, total = h + b, total == cost_history[-1] reconciliation, max(0,x) on holding, zero-denominator; 6 charts covering 8 traces, vline at x=5, '4'+'8' annotation, "Week" axis title, station-name subplot titles, state.total_weeks-driven x range) all green. 71/71 pytest passing; AST guard 4/4. Canonical seed=42: variance ratio 35.38, per-echelon R=3.43/W=12.81/D=29.27/F=35.38 (monotonic upstream), cost ledger exact reconciliation. Plan 03-02 unblocked.
-Resume file: .planning/phases/03-debrief-charts-narrative/03-02-PLAN.md
+Last session: 2026-05-18T21:44:33Z
+Stopped at: Completed 03-debrief-charts-narrative/03-02-PLAN.md — Phase 3 COMPLETE. beergame/narrative package shipped with 4 station-specific templates (R=127 / W=121 / D=124 / F=142 words at canonical seed=42, all ≤200, all mention "bullwhip", all use markdown bold, all escape \$ to dodge Streamlit LaTeX). views/debrief.py rewritten end-to-end (title + headline 2dp st.metric "35.38×" + 4-panel chart via st.plotly_chart(fig, key="debrief_four_panel", width="stretch") + 4 per-echelon st.metric tiles in st.columns(4) + cost breakdown st.table + narrative st.markdown(narrative_for(state)) + Play again st.button bound to app.py::reset_game). tests/test_narrative.py 6 pure-Python tests (≤200 words, "bullwhip" literal, role name appearance, determinism, markdown bold, cost-number interpolation). tests/test_app_smoke.py extended 5 → 10 tests: 1 canonical-Retailer content check (asserts headline metric label + Cost breakdown + What just happened subheaders + Play again button + not at.exception) + 4 parametrized over all Role members. 82/82 pytest green; AST guard 4/4 still clean; streamlit run app.py boots clean (HTTP 200 on /_stcore/health). DEB-01..DEB-06 all visually delivered. 1 deviation auto-fixed (Rule 1 - docstring token tripped grep verifier; behavior unchanged). Phase 4 (Streamlit Community Cloud deploy) unblocked.
+Resume file: .planning/phases/04-deploy-streamlit-community-cloud/04-RESEARCH.md (Phase 4 not yet planned — orchestrator can spin up Phase 4 research + plans next)
