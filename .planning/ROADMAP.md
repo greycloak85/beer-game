@@ -44,7 +44,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The user can submit an order each week via `st.number_input` (min 0, no upper cap) inside an `st.form`, click "Advance week", and the week counter increments while the AI opponents place their orders behind the scenes.
   4. After the user submits the order for week 36, the app automatically transitions to the debrief view (even if the debrief is still a placeholder in this phase).
   5. A page refresh resets the game cleanly (in-session `st.session_state` only — no stale state leaks between runs), and a full manual playthrough completes without exceptions.
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves (sequential — Plan 02 consumes Plan 01's `last_shipment_received`; Plan 03 replaces Plan 02's `play.py` stub and depends on the app router's `submit_order` callback being wired)
+- [ ] 02-01-PLAN.md — Engine API extension: `shipments_received_history` on StationState, `last_shipment_received` on StationView/RetailerView, +7 regression tests (enables PLAY-01)
+- [ ] 02-02-PLAN.md — App shell: `app.py` (phase router, session_state, 4 callbacks) + `beergame/views/` package (rules, setup, debrief placeholder, play stub) + `.streamlit/config.toml` (SETUP-01..04)
+- [ ] 02-03-PLAN.md — Full play view replacing the stub + `tests/test_app_smoke.py` AppTest coverage of 4 key transitions (PLAY-01..05)
 
 ### Phase 3: Debrief Charts + Narrative
 **Goal**: A post-game debrief that visually reproduces the canonical bullwhip pattern, quantifies amplification and cost, and explains in plain language what the player just experienced — so the lesson lands without an instructor.
@@ -78,10 +81,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Simulation Engine + AI | 0/3 | Complete    | 2026-05-18 |
-| 2. UI Shell + Per-Turn Play | 0/TBD | Not started | - |
+| 2. UI Shell + Per-Turn Play | 0/3 | Not started | - |
 | 3. Debrief Charts + Narrative | 0/TBD | Not started | - |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-05-18*
 *Phase 1 planned: 2026-05-18 — 3 plans in 3 waves covering ENG-01..10 + AI-01..04*
+*Phase 2 planned: 2026-05-18 — 3 plans in 3 waves covering SETUP-01..04 + PLAY-01..05; engine extension `shipments_received_history` precedes UI work*
