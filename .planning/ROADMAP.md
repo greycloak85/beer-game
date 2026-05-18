@@ -73,7 +73,9 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. The Streamlit Community Cloud deployment is reachable at a public URL, has Python set to 3.12 in the CC "Advanced settings" dropdown, and the deploy log confirms CC selected Python 3.12.
   4. A first-time visitor can open the live URL (tolerating ~30s cold start), play a full 36-week game, and reach the debrief without errors.
   5. The repo `README.md` explains how to play, links to the live app, and notes the ~30-second cold-start delay.
-**Plans**: TBD
+**Plans**: 2 plans in 2 waves (sequential — Plan 02 pushes after Plan 01 commits the deploy artifacts; share.streamlit.io connect step is user-driven and printed as post-push instructions at the end of Plan 02)
+- [ ] 04-01-PLAN.md — Deploy artifacts: `requirements.txt` (streamlit==1.57.0 + plotly==6.7.0), `.python-version` verification (3.12), `.gitignore` audit (secrets.toml + uv.lock + caches), README.md (play instructions + cold-start note + Sterman 1989 credit) (DEPLOY-03, DEPLOY-04, DEPLOY-05, DEPLOY-06)
+- [ ] 04-02-PLAN.md — GitHub publish: pre-push sanity (no shadowing dep files, gh auth, clean tree, 82/82 pytest) → `gh repo create greycloak85/beer-game --public --source . --remote origin --push` → emit Streamlit Community Cloud connect instructions for the user (DEPLOY-01, DEPLOY-02)
 
 ## Progress
 
@@ -85,10 +87,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 | 1. Simulation Engine + AI | 0/3 | Complete    | 2026-05-18 |
 | 2. UI Shell + Per-Turn Play | 0/3 | Complete    | 2026-05-18 |
 | 3. Debrief Charts + Narrative | 0/2 | Complete    | 2026-05-18 |
-| 4. Deploy to Streamlit Community Cloud | 0/TBD | Not started | - |
+| 4. Deploy to Streamlit Community Cloud | 0/2 | Not started | - |
 
 ---
 *Roadmap created: 2026-05-18*
 *Phase 1 planned: 2026-05-18 — 3 plans in 3 waves covering ENG-01..10 + AI-01..04*
 *Phase 2 planned: 2026-05-18 — 3 plans in 3 waves covering SETUP-01..04 + PLAY-01..05; engine extension `shipments_received_history` precedes UI work*
 *Phase 3 planned: 2026-05-18 — 2 plans in 2 waves covering DEB-01..06; Plan 01 ships pure-Python metrics + pure-Plotly chart builder + unit tests, Plan 02 ships narrative + view rewrite + AppTest smoke*
+*Phase 4 planned: 2026-05-18 — 2 plans in 2 waves covering DEPLOY-01..06; Plan 01 ships deploy artifacts (requirements.txt + .python-version + .gitignore + README.md), Plan 02 publishes to greycloak85/beer-game via gh repo create and prints Streamlit Cloud connect instructions for the user*
