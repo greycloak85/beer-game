@@ -5,36 +5,36 @@
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A player completes one Beer Game round in one sitting and *sees* the bullwhip effect emerge in the post-game debrief — charts and narrative make the lesson land without an instructor in the room.
-**Current focus:** Phase 1 — Simulation Engine + AI
+**Current focus:** Phase 2 — UI Shell + Per-Turn Play
 
 ## Current Position
 
-Phase: 1 of 4 (Simulation Engine + AI)
-Plan: 3 of 3 complete in current phase
-Status: Phase 1 COMPLETE — ready for verifier; Phase 2 (UI Shell) unblocked
-Last activity: 2026-05-18 — Completed Plan 01-03 (Phase 1 exit gates: GATE 1 equilibrium + GATE 2 bullwhip ratio = 2.000; 44/44 tests pass)
+Phase: 2 of 4 (UI Shell + Per-Turn Play)
+Plan: 1 of 3 complete in current phase
+Status: Plan 02-01 COMPLETE (engine API extended for shipments_received); Plan 02-02 unblocked
+Last activity: 2026-05-18 — Completed Plan 02-01 (additive engine API: shipments_received_history + last_shipment_received; 51/51 tests pass; bullwhip ratio still 2.000)
 
-Progress: [███░░░░░░░] 25%
+Progress: [████░░░░░░] 33%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
+- Total plans completed: 4
 - Average duration: 3.3min
-- Total execution time: 10min
+- Total execution time: 13min
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
-| 2. UI Shell + Per-Turn Play | 0/TBD | — | — |
+| 2. UI Shell + Per-Turn Play | 1/3 | 3min | 3min |
 | 3. Debrief Charts + Narrative | 0/TBD | — | — |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
 
 **Recent Trend:**
-- Last 5 plans: 01-01 (5min, 2 tasks, 19 files), 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files)
-- Trend: steady velocity, Phase 1 complete with 44/44 tests passing
+- Last 5 plans: 01-01 (5min, 2 tasks, 19 files), 01-02 (2min, 2 tasks, 4 files), 01-03 (3min, 2 tasks, 2 files), 02-01 (3min, 2 tasks, 4 files)
+- Trend: steady velocity, Phase 1 complete + Phase 2 underway with 51/51 tests passing
 
 *Updated after each plan completion*
 
@@ -43,6 +43,7 @@ Progress: [███░░░░░░░] 25%
 | Phase 01-simulation-engine-ai P01 | 5min | 2 tasks | 19 files |
 | Phase 01-simulation-engine-ai P02 | 2min | 2 tasks | 4 files |
 | Phase 01-simulation-engine-ai P03 | 3min | 2 tasks | 2 files |
+| Phase 02-ui-shell-per-turn-play P01 | 3min | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -65,17 +66,21 @@ Recent decisions affecting current work:
 - [Phase 01-simulation-engine-ai]: GATE 2 canonical bullwhip ratio = 2.000 under seed=42 (factory_peak=22, retailer_peak=11) — inside [2.0, 4.0]. No S' tuning required; S' remains 17.0. Monotonic upstream amplification: R=11 <= W=16 <= D=21 <= F=22.
 - [Phase 01-simulation-engine-ai]: BLOCKER 1 fix verified at full-simulation level — Factory inventory stays at 12 for all 36 weeks under all-ConstantOrderAgent(4); the old broken design (ORDER_PIPELINE_LEN_FACTORY=0) would have produced Factory inventory=16. Future contributors forbidden from regressing this to shrink the bullwhip.
 - [Phase 01-simulation-engine-ai]: Bullwhip ratio bounds [2.0, 4.0] are load-bearing — only correctness check before Phase 2. The GATE 2 failure message explicitly names empirical-vs-optimal Sterman trap (cause #1), points to S' tuning in [12, 20] as the ONLY acceptable knob, and forbids regressing ORDER_PIPELINE_LEN_FACTORY.
+- [Phase 02-ui-shell-per-turn-play]: Engine API extended additively for PLAY-01 — `StationState.shipments_received_history: tuple[int, ...]` mirrors `shipments_sent_history`, growing once per tick in step 3 (record_state). View layer reads `view.last_shipment_received` directly instead of deriving from indirect history slices.
+- [Phase 02-ui-shell-per-turn-play]: New transient `_pending_shipment_received` (compare=False, repr=False) carries step-1's `incoming_shipments[0]` into step-3's history append. Preserves the "all histories grow exactly once per tick, in step 3" invariant; mirrors the existing `_demand_to_fill` / `_shipped_this_tick` pattern.
+- [Phase 02-ui-shell-per-turn-play]: `StationView.last_shipment_received: int = 0` (defaulted) — required so RetailerView's existing `customer_demand: int = 0` keeps a legal frozen-dataclass subclass field order. Empty-history fallback to EQUILIBRIUM_THROUGHPUT lives in `build_station_view`, not on the dataclass default.
+- [Phase 02-ui-shell-per-turn-play]: Plan 02-01 verified zero behavioral drift — bullwhip ratio still exactly 2.0000 under seed=42, equilibrium inventory still 12 for 36 weeks, AST guard still streamlit-clean. Future contributors forbidden from re-deriving `last_shipment_received` in the view layer.
 
 ### Pending Todos
 
-None — Phase 1 complete. Next: verifier review of Phase 1, then Phase 2 (UI Shell + Per-Turn Play) planning.
+None — Plan 02-01 complete. Next: Plan 02-02 (UI shell) is unblocked.
 
 ### Blockers/Concerns
 
-None. All 14 Phase 1 requirement IDs (ENG-01..10, AI-01..04) are demonstrably verified by the 44-test pytest suite.
+None. All Phase 1 invariants intact (51/51 tests pass; ratio = 2.000; AST guard clean).
 
 ## Session Continuity
 
-Last session: 2026-05-18T20:21:52Z
-Stopped at: Completed 01-simulation-engine-ai/01-03-PLAN.md — Phase 1 exit gates: GATE 1 (6 tests, ConstantOrderAgent equilibrium) + GATE 2 (5 tests, bullwhip ratio=2.000 under seed=42); 44/44 tests pass; ratio in [2.0, 4.0]; zero streamlit imports; same-seed determinism byte-identical. Phase 1 COMPLETE.
-Resume file: .planning/phases/02-ui-shell/ (Phase 2 not yet planned — verifier should review Phase 1 first)
+Last session: 2026-05-18T20:53:22Z
+Stopped at: Completed 02-ui-shell-per-turn-play/02-01-PLAN.md — Additive engine API for PLAY-01: `StationState.shipments_received_history`, `StationView.last_shipment_received` (default 0), `_pending_shipment_received` transient. 7 new regression tests; full suite 44 -> 51 passing; bullwhip ratio still 2.0000; zero streamlit imports.
+Resume file: .planning/phases/02-ui-shell-per-turn-play/02-02-PLAN.md
