@@ -14,7 +14,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 
 - [x] **Phase 1: Simulation Engine + AI** - Pure-Python engine and Sterman AI; the canonical bullwhip is provable via pytest before any UI exists (completed 2026-05-18)
 - [x] **Phase 2: UI Shell + Per-Turn Play** - Streamlit setup/rules/play screens; a human can play all 36 weeks against three AI opponents (completed 2026-05-18)
-- [ ] **Phase 3: Debrief Charts + Narrative** - 4-panel chart, amplification ratio, cost breakdown, and ≤200-word per-station narrative
+- [x] **Phase 3: Debrief Charts + Narrative** - 4-panel chart, amplification ratio, cost breakdown, and ≤200-word per-station narrative (completed 2026-05-18)
 - [ ] **Phase 4: Deploy to Streamlit Community Cloud** - Public URL on Streamlit Community Cloud from `greycloak85/beer-game` with pinned Python 3.12
 
 ## Phase Details
@@ -84,7 +84,7 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 |-------|----------------|--------|-----------|
 | 1. Simulation Engine + AI | 0/3 | Complete    | 2026-05-18 |
 | 2. UI Shell + Per-Turn Play | 0/3 | Complete    | 2026-05-18 |
-| 3. Debrief Charts + Narrative | 0/2 | Not started | - |
+| 3. Debrief Charts + Narrative | 0/2 | Complete    | 2026-05-18 |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | Not started | - |
 
 ---
