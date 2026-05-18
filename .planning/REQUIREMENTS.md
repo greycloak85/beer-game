@@ -25,7 +25,7 @@ Requirements for initial release. Each maps to roadmap phases. Every requirement
 - [ ] **AI-01**: Three AI opponents play the non-player stations using Sterman's *empirical* anchor-and-adjust heuristic (α≈0.26, β≈0.34, θ≈0.36, S′≈17) with the Sterman 1989 source cited in the code
 - [ ] **AI-02**: AI implementation conforms to an `Agent` protocol with a single `decide_order(view) -> int` method so heuristics are swappable
 - [ ] **AI-03**: When all four stations are played by Sterman AI with classic step demand, the Factory peak / Retailer peak order ratio falls within [2.0, 4.0] (canonical bullwhip calibration)
-- [ ] **AI-04**: When all four stations are played by Sterman AI with constant demand=4, inventory stays at 12 for all 36 weeks (equilibrium regression)
+- [ ] **AI-04**: Engine equilibrium regression — when all four stations are played by a trivial `ConstantOrderAgent(4)` with constant customer demand=4, inventory stays at 12 for all 36 weeks (this tests engine correctness; Sterman's bullwhip behavior is verified separately by AI-03)
 
 ### Game Setup & Rules
 

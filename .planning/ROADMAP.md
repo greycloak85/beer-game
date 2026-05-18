@@ -29,7 +29,10 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. `grep -r "import streamlit" engine/ ai/` returns zero matches — the engine and AI modules are pure Python and import-clean.
   4. Running the engine twice with the same seed produces byte-identical state traces (determinism); a non-Retailer `StationView` raises `AttributeError` if code attempts to read `customer_demand`.
   5. The tick sequence executes in the exact canonical order — receive shipments → fill orders → record state → place new orders → advance pipelines — verified by `tests/test_tick_invariants.py`.
-**Plans**: TBD
+**Plans**: 3 plans in 3 waves (sequential — Plans 02 and 03 import artifacts from Plan 01; Plan 03 consumes the Sterman agent from Plan 02)
+- [ ] 01-01-PLAN.md — Engine scaffolding + state/tick/costs/demand/metrics + Agent protocol + ConstantOrderAgent + 4 invariant tests (ENG-02..10, AI-02)
+- [ ] 01-02-PLAN.md — Sterman empirical AI agent + heuristic test + AST no-streamlit-import guard (AI-01, AI-02, ENG-01)
+- [ ] 01-03-PLAN.md — GATE 1 (equilibrium regression) + GATE 2 (bullwhip calibration ratio ∈ [2.0, 4.0]) — Phase 1 exit gates (AI-03, AI-04)
 
 ### Phase 2: UI Shell + Per-Turn Play
 **Goal**: A Streamlit app shell with phase-routed navigation that lets a human pick a station, read the rules + bullwhip primer, and play a full 36-week game one week at a time against three Sterman AI opponents.
@@ -74,10 +77,11 @@ Phases execute in numeric order: 1 → 2 → 3 → 4
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Simulation Engine + AI | 0/TBD | Not started | - |
+| 1. Simulation Engine + AI | 0/3 | Planned | - |
 | 2. UI Shell + Per-Turn Play | 0/TBD | Not started | - |
 | 3. Debrief Charts + Narrative | 0/TBD | Not started | - |
 | 4. Deploy to Streamlit Community Cloud | 0/TBD | Not started | - |
 
 ---
 *Roadmap created: 2026-05-18*
+*Phase 1 planned: 2026-05-18 — 3 plans in 3 waves covering ENG-01..10 + AI-01..04*
