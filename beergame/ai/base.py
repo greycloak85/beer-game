@@ -5,10 +5,15 @@ object that exposes ``decide_order(view) -> int``. Plan 02 adds the Sterman
 agent; Plan 03's GATE 1 uses ``ConstantOrderAgent(4)`` everywhere to assert
 that the engine itself is in canonical equilibrium independent of any
 behavioral heuristic.
-"""
-from typing import Protocol, runtime_checkable
 
-from beergame.engine.state import StationView
+``StationView`` is referenced only in type annotations, so it is imported
+under ``TYPE_CHECKING`` to avoid a circular import (engine.tick imports
+``Agent`` from this module, and engine/__init__.py re-exports tick).
+"""
+from typing import TYPE_CHECKING, Protocol, runtime_checkable
+
+if TYPE_CHECKING:
+    from beergame.engine.state import StationView
 
 
 @runtime_checkable
@@ -17,7 +22,7 @@ class Agent(Protocol):
 
     Returns a non-negative integer order quantity for this week.
     """
-    def decide_order(self, view: StationView) -> int: ...
+    def decide_order(self, view: "StationView") -> int: ...
 
 
 class ConstantOrderAgent:
@@ -30,5 +35,5 @@ class ConstantOrderAgent:
     def __init__(self, quantity: int):
         self.quantity = int(quantity)
 
-    def decide_order(self, view: StationView) -> int:
+    def decide_order(self, view: "StationView") -> int:
         return self.quantity
