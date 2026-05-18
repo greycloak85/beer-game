@@ -62,6 +62,7 @@ def receive_shipments(state: GameState) -> GameState:
             s,
             inventory=s.inventory + arriving,
             incoming_shipments=new_shipments,
+            _pending_shipment_received=arriving,
         ))
     return replace(state, stations=tuple(new_stations))
 
@@ -154,9 +155,11 @@ def record_state(state: GameState) -> GameState:
             backlog_history=s.backlog_history + (s.backlog,),
             orders_received_history=s.orders_received_history + (s._demand_to_fill,),
             shipments_sent_history=s.shipments_sent_history + (s._shipped_this_tick,),
+            shipments_received_history=s.shipments_received_history + (s._pending_shipment_received,),
             cost_history=s.cost_history + (prev_cum + w_cost,),
             _demand_to_fill=0,
             _shipped_this_tick=0,
+            _pending_shipment_received=0,
         ))
     return replace(state, stations=tuple(new_stations))
 

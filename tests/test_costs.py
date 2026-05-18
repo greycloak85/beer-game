@@ -15,6 +15,7 @@ def _station(inv: int, bl: int) -> StationState:
         orders_placed_history=(),
         orders_received_history=(),
         shipments_sent_history=(),
+        shipments_received_history=(),
         cost_history=(),
     )
 
