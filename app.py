@@ -95,6 +95,8 @@ def reset_game() -> None:
     they don't have to re-read on a replay."""
     for key in ("phase", "player_role", "seed", "game", "ai_agents"):
         st.session_state.pop(key, None)
+    if st.session_state.get("seen_rules"):
+        st.session_state.phase = "setup"
 
 
 _init_session_state()
