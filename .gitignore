@@ -1,6 +1,22 @@
-.venv/
+# Python build / cache
 __pycache__/
-*.egg-info/
 *.pyc
+*.egg-info/
 .pytest_cache/
 .ruff_cache/
+
+# Virtual environments
+.venv/
+venv/
+
+# Streamlit secrets — NEVER commit
+.streamlit/secrets.toml
+
+# Lockfiles — must NOT shadow requirements.txt on Streamlit Cloud
+uv.lock
+
+# OS / editor cruft
+.DS_Store
+.idea/
+.vscode/
+*.swp
