@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-05-18)
 
 **Core value:** A player completes one Beer Game round in one sitting and *sees* the bullwhip effect emerge in the post-game debrief — charts and narrative make the lesson land without an instructor in the room.
-**Current focus:** Phase 3 — Debrief Charts + Narrative (Phase 2 COMPLETE)
+**Current focus:** Phase 4 — Deploy to Streamlit Community Cloud (Plan 01 COMPLETE, Plan 02 next)
 
 ## Current Position
 
-Phase: 3 of 4 (Debrief Charts + Narrative) — COMPLETE
-Plan: 2 of 2 complete in current phase
-Status: Phase 3 COMPLETE — Plan 03-02 shipped (beergame/narrative package with 4 station templates ≤200 words; views/debrief.py rewritten end-to-end with title + 2dp headline st.metric + 4-panel chart + 4 per-echelon tiles + cost st.table + narrative st.markdown + Play again button; AppTest smoke extended with 5 new tests covering all 4 player roles). DEB-01..DEB-06 all visually delivered. Phase 4 (Streamlit Community Cloud deploy) ready to plan/execute.
-Last activity: 2026-05-18 — Completed Plan 03-02 (beergame/narrative/__init__.py + templates.py with 4 static format-string templates keyed by Role; views/debrief.py full Phase-3 layout: st.title + st.metric "Bullwhip amplification 35.38×" + st.plotly_chart key="debrief_four_panel" width="stretch" + st.columns(4) of st.metric + st.table cost breakdown + st.markdown(narrative_for(state)) + st.button "Play again"; tests/test_narrative.py 6 pure-Python tests; tests/test_app_smoke.py extended from 5 to 10 tests including parametrize over all 4 roles; 82/82 pytest green; AST guard 4/4 still clean; streamlit boots clean HTTP 200; per-role word counts R=127 / W=121 / D=124 / F=142 at canonical seed=42).
+Phase: 4 of 4 (Deploy to Streamlit Community Cloud) — IN PROGRESS
+Plan: 1 of 2 complete in current phase
+Status: Phase 4 Plan 01 COMPLETE — deploy metadata committed (requirements.txt with streamlit==1.57.0 + plotly==6.7.0; .gitignore extended with .streamlit/secrets.toml + uv.lock + venv/ + OS cruft; README.md with how-to-play + 4 bullet rules + cold-start note + Sterman 1989 credit + live-app placeholder for Plan 02 to backfill; .python-version verified at 3.12). pytest still 82/82 green. Plan 02 (gh repo create → Streamlit Cloud connect → live URL backfill → canonical playthrough) is the final plan.
+Last activity: 2026-05-18 — Completed Plan 04-01 (requirements.txt exact 2-line pin; .gitignore 6→14 entries covering all DEPLOY-06 exclusions; README.md 68 lines / 8 sections / 400 words including stdlib-venv local-dev flow; .python-version unchanged at 3.12). pytest 82/82 before AND after; no app code changed (deploy artifacts are metadata-only). AST guard 4/4 still clean. No higher-priority dep file (uv.lock / Pipfile / environment.yml) in working tree, so CC's resolver lands on requirements.txt.
 
-Progress: [████████░░] 80%
+Progress: [█████████░] 90%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 8
-- Average duration: 3.5min
-- Total execution time: 28min
+- Total plans completed: 9
+- Average duration: 3.7min
+- Total execution time: 33min
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████████░░] 80%
 | 1. Simulation Engine + AI | 3/3 ✅ | 10min | 3.3min |
 | 2. UI Shell + Per-Turn Play | 3/3 ✅ | 9min | 3min |
 | 3. Debrief Charts + Narrative | 2/2 ✅ | 9min | 4.5min |
-| 4. Deploy to Streamlit Community Cloud | 0/TBD | — | — |
+| 4. Deploy to Streamlit Community Cloud | 1/2 | 5min | 5min |
 
 **Recent Trend:**
-- Last 5 plans: 02-01 (3min, 2 tasks, 4 files), 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files), 03-02 (4min, 3 tasks, 5 files)
-- Trend: steady velocity, Phases 1+2+3 all COMPLETE; 82/82 tests passing (71 prior + 6 new narrative + 5 new AppTest smoke for Plan 03-02); AST guard still 4/4 clean; streamlit run app.py boots clean (HTTP 200 on /_stcore/health)
+- Last 5 plans: 02-02 (3min, 3 tasks, 8 files), 02-03 (3min, 2 tasks, 2 files), 03-01 (5min, 3 tasks, 6 files), 03-02 (4min, 3 tasks, 5 files), 04-01 (5min, 3 tasks, 4 files)
+- Trend: steady velocity, Phases 1+2+3 all COMPLETE + Phase 4 Plan 01 (deploy metadata) shipped; 82/82 tests passing throughout (deploy artifacts add metadata only, no app code changed); AST guard still 4/4 clean; requirements.txt now pins streamlit==1.57.0 + plotly==6.7.0 for Streamlit Cloud; .gitignore now blocks .streamlit/secrets.toml + uv.lock; README.md shipped with how-to-play, cold-start note, Sterman 1989 credit, and live-URL placeholder for Plan 02 to backfill
 
 *Updated after each plan completion*
 
@@ -48,6 +48,7 @@ Progress: [████████░░] 80%
 | Phase 02-ui-shell-per-turn-play P03 | 3min | 2 tasks | 2 files |
 | Phase 03-debrief-charts-narrative P01 | 5min | 3 tasks | 6 files |
 | Phase 03-debrief-charts-narrative P02 | 4min | 3 tasks | 5 files |
+| Phase 04-deploy-streamlit-cloud P01 | 5min | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -101,17 +102,23 @@ Recent decisions affecting current work:
 - [Phase 03-debrief-charts-narrative]: AppTest parametrize-over-roles pattern: `@pytest.mark.parametrize("role_name", ["RETAILER", ...])` + write `at.session_state.player_role = Role[role_name]` before clicking the setup form's submit button. The setup view's radio is keyed to `player_role`, so this reuses the same `start_game` callback path the real user flow uses. Avoids the AppTest 1.57.0 question of how `at.radio[0].set_value(...)` accepts enum values.
 - [Phase 03-debrief-charts-narrative]: AppTest CANNOT inspect Plotly charts (returns UnknownElement). The load-bearing chart check at the AppTest layer is `not at.exception`; structural chart assertions belong in `tests/test_charts_orders_inventory.py` against `fig.data` / `fig.layout` directly. The AppTest smoke confirms the chart renders end-to-end without raising — and that's enough.
 - [Phase 03-debrief-charts-narrative]: `reset_game` in app.py covers all session-state keys; Plan 03-02 introduces NO new session-state keys (widget `key=` attributes only, which Streamlit manages internally). Future plans adding new session keys MUST extend `reset_game`'s tuple — Pitfall 10.
+- [Phase 04-deploy-streamlit-cloud]: `requirements.txt` at repo root holds EXACTLY two lines (`streamlit==1.57.0`, `plotly==6.7.0`) — no dev tooling, no transitive pins, no comments. Streamlit Community Cloud's uv-backed pip resolver reads this file at deploy time; `requirements-dev.txt` is for local dev only and is invisible to CC. Future contributors MUST NOT add unpinned/loose-spec deps here.
+- [Phase 04-deploy-streamlit-cloud]: `.python-version` at repo root is exactly `3.12\n` (Plan 01-01's version, verified unchanged). This is for local-CC parity only; the AUTHORITATIVE source on CC is the Advanced settings → Python version dropdown that the Plan 02 deploy operator (the user) sets manually.
+- [Phase 04-deploy-streamlit-cloud]: `pyproject.toml` is tracked at repo root but does NOT shadow `requirements.txt` — STACK.md confirms CC's dep-file priority is `uv.lock → Pipfile → environment.yml → requirements.txt → pyproject.toml`, so `pyproject.toml` sits LAST. Leaving it tracked is safe; future contributors MUST NOT commit `uv.lock`, `Pipfile`, or `environment.yml` (any of those would shadow `requirements.txt` and break the deploy).
+- [Phase 04-deploy-streamlit-cloud]: `.gitignore` extended to 14 entries: preserved Plan 01-01's `__pycache__/`, `*.pyc`, `*.egg-info/`, `.pytest_cache/`, `.ruff_cache/`, `.venv/`; added `venv/`, `.streamlit/secrets.toml` (DEPLOY-06 defensive), `uv.lock` (must never shadow requirements.txt), and tasteful OS/editor cruft (`.DS_Store`, `.idea/`, `.vscode/`, `*.swp`). `.streamlit/config.toml` deliberately NOT gitignored — Plan 02-02 ships it.
+- [Phase 04-deploy-streamlit-cloud]: README.md uses stdlib-venv local-dev flow (`python3.12 -m venv .venv` + `.venv/bin/pip install -r requirements.txt -r requirements-dev.txt` + `.venv/bin/streamlit run app.py`), NOT the uv-flavored variant. Env-notes objective overrode the plan template; both forms work, stdlib `venv` is universal.
+- [Phase 04-deploy-streamlit-cloud]: README live-URL placeholder is the literal string `_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_` — Plan 02 can grep for "pending Streamlit Community Cloud deploy" (unique substring) to find the exact swap target. Plan 02's URL-backfill commit goes in a separate `docs(04-02): backfill live app URL` commit.
 
 ### Pending Todos
 
-Phase 4 (Deploy to Streamlit Community Cloud). Needs to: (1) commit `requirements.txt` with `streamlit==1.57.0` and `plotly==6.7.0` pins (currently those pins live in `requirements-dev.txt` for local dev); (2) NOT commit `uv.lock` (Streamlit Cloud's dependency-file priority would pick it up; yanked transitives can wedge builds — Phase 4 locked decision); (3) verify `app.py` discovery at repo root (already correct path); (4) configure Streamlit Cloud to point at `app.py` and the main branch; (5) full canonical playthrough on deployed URL to confirm parity with local runs.
+Phase 4 Plan 02 (final plan): (1) `gh repo create greycloak85/beer-game --public --source . --push`; (2) connect repo to Streamlit Community Cloud → "New app" → set Advanced settings → Python version = 3.12 → Deploy; (3) grep+replace the "_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_" placeholder in README.md with the deployed share.streamlit.io URL, commit `docs(04-02): backfill live app URL`; (4) full 36-week canonical playthrough on the deployed URL (pick Retailer, default seed, verify debrief renders + bullwhip ratio matches local).
 
 ### Blockers/Concerns
 
-None. Phase 3 COMPLETE. All Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ + narrative/ also streamlit-free by design). 82/82 pytest passing (71 prior + 6 narrative + 5 AppTest debrief smoke). No numpy/pandas anywhere in beergame/. Streamlit boots clean (HTTP 200 on /_stcore/health). DEB-01 through DEB-06 all visually delivered via the rewritten debrief view. Phase 4 has a clean, fully-tested foundation to deploy.
+None. Phase 4 Plan 01 COMPLETE — all 4 deploy artifacts (`requirements.txt`, `.python-version`, `.gitignore`, `README.md`) committed at repo root. All Phase 1 invariants still intact (max-based bullwhip ratio = 2.000, equilibrium inventory = 12 for 36 weeks). AST guard 4/4 (engine/ai/config layers streamlit-free; charts/ + narrative/ also streamlit-free by design). 82/82 pytest passing (no app code changed — deploy artifacts are metadata only). No numpy/pandas anywhere in beergame/. No higher-priority dep file in working tree (no uv.lock / Pipfile / environment.yml), so Streamlit Cloud's resolver will land on `requirements.txt`. Plan 02 is the final plan and is artifact-light (CLI + manual deploy steps + a single grep+replace commit).
 
 ## Session Continuity
 
-Last session: 2026-05-18T21:44:33Z
-Stopped at: Completed 03-debrief-charts-narrative/03-02-PLAN.md — Phase 3 COMPLETE. beergame/narrative package shipped with 4 station-specific templates (R=127 / W=121 / D=124 / F=142 words at canonical seed=42, all ≤200, all mention "bullwhip", all use markdown bold, all escape \$ to dodge Streamlit LaTeX). views/debrief.py rewritten end-to-end (title + headline 2dp st.metric "35.38×" + 4-panel chart via st.plotly_chart(fig, key="debrief_four_panel", width="stretch") + 4 per-echelon st.metric tiles in st.columns(4) + cost breakdown st.table + narrative st.markdown(narrative_for(state)) + Play again st.button bound to app.py::reset_game). tests/test_narrative.py 6 pure-Python tests (≤200 words, "bullwhip" literal, role name appearance, determinism, markdown bold, cost-number interpolation). tests/test_app_smoke.py extended 5 → 10 tests: 1 canonical-Retailer content check (asserts headline metric label + Cost breakdown + What just happened subheaders + Play again button + not at.exception) + 4 parametrized over all Role members. 82/82 pytest green; AST guard 4/4 still clean; streamlit run app.py boots clean (HTTP 200 on /_stcore/health). DEB-01..DEB-06 all visually delivered. 1 deviation auto-fixed (Rule 1 - docstring token tripped grep verifier; behavior unchanged). Phase 4 (Streamlit Community Cloud deploy) unblocked.
-Resume file: .planning/phases/04-deploy-streamlit-community-cloud/04-RESEARCH.md (Phase 4 not yet planned — orchestrator can spin up Phase 4 research + plans next)
+Last session: 2026-05-18T22:05:22Z
+Stopped at: Completed 04-deploy-streamlit-cloud/04-01-PLAN.md — Phase 4 Plan 01 ships the four Streamlit Cloud deploy artifacts. requirements.txt at repo root with exactly `streamlit==1.57.0` + `plotly==6.7.0` (the deploy-time dep file CC's uv-backed resolver reads). .python-version verified unchanged at `3.12`. .gitignore extended 6→14 entries (preserved all Plan 01-01 entries; added `.streamlit/secrets.toml`, `uv.lock`, `venv/`, `.DS_Store`, `.idea/`, `.vscode/`, `*.swp`); `.streamlit/config.toml` deliberately NOT ignored. README.md 68 lines / 8 sections: H1 "Beer Game" + tagline + "Play it" with `_(pending Streamlit Community Cloud deploy — Phase 4 Plan 02 will fill in the URL.)_` placeholder + "How to play" (4 bullets) + cost asymmetry + "What is the bullwhip effect?" 2-paragraph primer + "Running locally" (stdlib venv flow) + focused-pytest subset section + "Tech stack" pin block + "Cold-start note" (~30s) + "Credits" (Sterman 1989 + MIT Sloan link). pytest 82/82 before AND after; AST guard 4/4 still clean; `import app` clean. 1 minor deviation (README section ordering preference; no behavioural change). DEPLOY-03 + DEPLOY-04 + DEPLOY-05 + DEPLOY-06 all satisfied on disk; DEPLOY-01 + DEPLOY-02 are Plan 02's responsibility. Commits: e5bc3dc (requirements.txt) + e3047fa (.gitignore) + 2ed6538 (README.md).
+Resume file: .planning/phases/04-deploy-streamlit-cloud/04-02-PLAN.md (final plan — gh repo create + Streamlit Cloud connect + live URL backfill + canonical playthrough)
