@@ -100,17 +100,58 @@ Acknowledged but deferred. Not in current roadmap.
 
 ## Traceability
 
-Empty until roadmap creation — populated by `gsd-roadmapper`.
+Populated by `gsd-roadmapper` on 2026-05-18. Every v1 requirement maps to exactly one phase.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated during roadmap creation) | | |
+| ENG-01 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-02 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-03 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-04 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-05 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-06 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-07 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-08 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-09 | Phase 1: Simulation Engine + AI | Pending |
+| ENG-10 | Phase 1: Simulation Engine + AI | Pending |
+| AI-01 | Phase 1: Simulation Engine + AI | Pending |
+| AI-02 | Phase 1: Simulation Engine + AI | Pending |
+| AI-03 | Phase 1: Simulation Engine + AI | Pending |
+| AI-04 | Phase 1: Simulation Engine + AI | Pending |
+| SETUP-01 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| SETUP-02 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| SETUP-03 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| SETUP-04 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| PLAY-01 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| PLAY-02 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| PLAY-03 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| PLAY-04 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| PLAY-05 | Phase 2: UI Shell + Per-Turn Play | Pending |
+| DEB-01 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEB-02 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEB-03 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEB-04 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEB-05 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEB-06 | Phase 3: Debrief Charts + Narrative | Pending |
+| DEPLOY-01 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
+| DEPLOY-02 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
+| DEPLOY-03 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
+| DEPLOY-04 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
+| DEPLOY-05 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
+| DEPLOY-06 | Phase 4: Deploy to Streamlit Community Cloud | Pending |
 
 **Coverage:**
 - v1 requirements: 33 total
-- Mapped to phases: 0 (pending roadmap)
-- Unmapped: 33 ⚠️ (will resolve at roadmap step)
+- Mapped to phases: 33 (100%) ✓
+- Unmapped: 0 ✓
+- Duplicates (in >1 phase): 0 ✓
+
+**Per-Phase Counts:**
+- Phase 1 (Engine + AI): 14 requirements (ENG-01 … ENG-10, AI-01 … AI-04)
+- Phase 2 (UI Shell + Play): 9 requirements (SETUP-01 … SETUP-04, PLAY-01 … PLAY-05)
+- Phase 3 (Debrief): 6 requirements (DEB-01 … DEB-06)
+- Phase 4 (Deploy): 6 requirements (DEPLOY-01 … DEPLOY-06)
 
 ---
 *Requirements defined: 2026-05-18*
-*Last updated: 2026-05-18 after initial definition*
+*Last updated: 2026-05-18 after roadmap creation — traceability populated*
