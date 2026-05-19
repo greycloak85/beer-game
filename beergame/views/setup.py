@@ -20,28 +20,32 @@ def render(on_start) -> None:
             ``start_game``, which constructs the GameState + the Sterman
             agents dict and routes to the play phase.
     """
-    st.title(":beer_mug: Beer Game — Setup")
-    st.write(
-        "Pick a station to play. You'll see only that station's view "
-        "during the game."
-    )
+    # Constrain setup form to the middle 50% — it's just a few inputs and
+    # would look lost stretched across the full wide-layout viewport.
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        st.title("🍺 Beer Game — Setup")
+        st.write(
+            "Pick a station to play. You'll see only that station's view "
+            "during the game."
+        )
 
-    with st.form("setup_form"):
-        st.radio(
-            "Your station",
-            options=list(Role),
-            format_func=lambda r: r.name.title(),
-            key="player_role",
-            horizontal=True,
-        )
-        st.number_input(
-            "Random seed (advanced — leave default for the canonical run)",
-            min_value=0,
-            step=1,
-            key="seed",
-        )
-        st.form_submit_button(
-            "Start game",
-            on_click=on_start,
-            type="primary",
-        )
+        with st.form("setup_form"):
+            st.radio(
+                "Your station",
+                options=list(Role),
+                format_func=lambda r: r.name.title(),
+                key="player_role",
+                horizontal=True,
+            )
+            st.number_input(
+                "Random seed (advanced — leave default for the canonical run)",
+                min_value=0,
+                step=1,
+                key="seed",
+            )
+            st.form_submit_button(
+                "Start game",
+                on_click=on_start,
+                type="primary",
+            )

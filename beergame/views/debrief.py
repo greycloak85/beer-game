@@ -52,7 +52,7 @@ def render(state: GameState, on_reset) -> None:
     )
 
     # ---- Title + headline (DEB-03 primary readout) ----
-    st.title(":beer_mug: Game complete")
+    st.title("🍺 Game complete")
     overall = variance_bullwhip_ratio(state)
     st.metric(
         "Bullwhip amplification",

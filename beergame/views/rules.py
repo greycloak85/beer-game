@@ -61,11 +61,16 @@ def render(on_continue) -> None:
         on_continue: callback invoked when the user clicks "Got it" —
             app.py binds this to ``go_to_setup``.
     """
-    st.title(":beer_mug: Beer Game — Rules")
-    st.markdown(_PRIMER_BODY)
-    st.button(
-        "Got it — set up my game",
-        on_click=on_continue,
-        type="primary",
-        key="rules_continue_btn",
-    )
+    # Wide layout would stretch this text across the whole viewport (>70 chars
+    # per line = eye strain). Constrain to the middle 60% so reading width
+    # stays comfortable while the play view continues to use the full width.
+    _, center, _ = st.columns([1, 3, 1])
+    with center:
+        st.title("🍺 Beer Game — Rules")
+        st.markdown(_PRIMER_BODY)
+        st.button(
+            "Got it — set up my game",
+            on_click=on_continue,
+            type="primary",
+            key="rules_continue_btn",
+        )

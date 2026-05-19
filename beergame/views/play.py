@@ -120,8 +120,12 @@ def _trend_delta(history: tuple[int, ...]) -> str | None:
 
 def _render_status_cards(view, station_inventory_history: tuple[int, ...],
                           station_backlog_history: tuple[int, ...]) -> None:
-    """Four bordered cards in a 2x2 grid. Inventory and backlog get color-coded
-    big numbers; shipments-in and orders-out get neutral but trend-annotated.
+    """Four bordered cards stacked vertically. The caller places this inside an
+    outer column so each card spans that column's full width — gives the labels
+    room to breathe (e.g., "Order from downstream this week").
+
+    Inventory and backlog get color-coded big numbers; shipments-in and
+    orders-out get neutral numbers with trend annotation.
     """
     inv = view.inventory
     bl = view.backlog
@@ -129,44 +133,40 @@ def _render_status_cards(view, station_inventory_history: tuple[int, ...],
     inv_color = "red" if inv == 0 else ("orange" if inv < 4 else "green" if inv <= 30 else "blue")
     bl_color = "red" if bl >= 20 else ("orange" if bl >= 5 else "green" if bl == 0 else "gray")
 
-    row1_left, row1_right = st.columns(2)
-    with row1_left:
-        with st.container(border=True):
-            st.caption("On-hand inventory")
-            st.markdown(f"# :{inv_color}[{inv}]")
-            inv_delta = _trend_delta(station_inventory_history)
-            st.caption(inv_delta or "first week")
-    with row1_right:
-        with st.container(border=True):
-            st.caption("Backlog (unfilled orders)")
-            st.markdown(f"# :{bl_color}[{bl}]")
-            bl_delta = _trend_delta(station_backlog_history)
-            st.caption(bl_delta or "first week")
+    with st.container(border=True):
+        st.caption("On-hand inventory")
+        st.markdown(f"# :{inv_color}[{inv}]")
+        inv_delta = _trend_delta(station_inventory_history)
+        st.caption(inv_delta or "first week")
 
-    row2_left, row2_right = st.columns(2)
-    with row2_left:
-        with st.container(border=True):
-            st.caption("Shipment that just arrived")
-            st.markdown(f"# {view.last_shipment_received}")
-            st.caption(f"Supply line: **{view.supply_line}** still in transit")
-    with row2_right:
-        with st.container(border=True):
-            st.caption("Order from downstream this week")
-            order_pulse_color = ("red" if view.last_order_received >= 20
-                                 else "orange" if view.last_order_received >= 10
-                                 else "gray")
-            st.markdown(f"# :{order_pulse_color}[{view.last_order_received}]")
-            recent = view.recent_orders_received
-            if len(recent) >= 2:
-                pulse = recent[-1] - recent[0]
-                if pulse > 0:
-                    st.caption(f":red[+{pulse} vs {len(recent)} weeks ago] (demand climbing)")
-                elif pulse < 0:
-                    st.caption(f":green[{pulse} vs {len(recent)} weeks ago] (demand cooling)")
-                else:
-                    st.caption("steady demand")
+    with st.container(border=True):
+        st.caption("Backlog (unfilled orders)")
+        st.markdown(f"# :{bl_color}[{bl}]")
+        bl_delta = _trend_delta(station_backlog_history)
+        st.caption(bl_delta or "first week")
+
+    with st.container(border=True):
+        st.caption("Shipment that just arrived")
+        st.markdown(f"# {view.last_shipment_received}")
+        st.caption(f"Supply line: **{view.supply_line}** still in transit")
+
+    with st.container(border=True):
+        st.caption("Order from downstream this week")
+        order_pulse_color = ("red" if view.last_order_received >= 20
+                             else "orange" if view.last_order_received >= 10
+                             else "gray")
+        st.markdown(f"# :{order_pulse_color}[{view.last_order_received}]")
+        recent = view.recent_orders_received
+        if len(recent) >= 2:
+            pulse = recent[-1] - recent[0]
+            if pulse > 0:
+                st.caption(f":red[+{pulse} vs {len(recent)} weeks ago] (demand climbing)")
+            elif pulse < 0:
+                st.caption(f":green[{pulse} vs {len(recent)} weeks ago] (demand cooling)")
             else:
-                st.caption("first reading")
+                st.caption("steady demand")
+        else:
+            st.caption("first reading")
 
 
 def _render_money_meter(this_week_holding: float, this_week_backorder: float,
@@ -324,59 +324,72 @@ def render(state: GameState, on_submit) -> None:
 
     st.divider()
 
-    # PLAY-01: status cards covering the player's locally-knowable position.
-    # All values derive from ``view`` (engine-sanctioned cross-station projection)
-    # or the player's OWN history tuples on me.* — never another station's.
-    _render_status_cards(
-        view=view,
-        station_inventory_history=me.inventory_history,
-        station_backlog_history=me.backlog_history,
-    )
+    # Two-column main body. Wide layout (set in app.py) gives us ~1100px to
+    # work with — splitting roughly 40/60 puts the four status cards in a
+    # comfortable left rail and gives the chart the wider half of the screen.
+    # The order form sits CENTERED beneath both columns so the player doesn't
+    # have to scroll between "read state" and "decide order".
+    left, right = st.columns([2, 3], gap="large")
 
-    # The new dollar-cost framing the user asked for.
-    _render_money_meter(
-        this_week_holding=this_week_holding,
-        this_week_backorder=this_week_backorder,
-        this_week_total=this_week_total,
-        cumulative_total=cumulative,
-    )
+    with left:
+        # PLAY-01: status cards. All values derive from ``view`` (engine-
+        # sanctioned cross-station projection) or the player's OWN history
+        # tuples on me.* — never another station's.
+        _render_status_cards(
+            view=view,
+            station_inventory_history=me.inventory_history,
+            station_backlog_history=me.backlog_history,
+        )
 
-    # Single-paragraph diagnostic naming what's happening and why it costs.
-    # No order suggestion — that would collapse the bullwhip discovery moment
-    # (AF-3). Just the dollars and the lag.
-    st.info(_diagnostic_message(view, health, this_week_holding, this_week_backorder))
+    with right:
+        # The dollar-cost meter.
+        _render_money_meter(
+            this_week_holding=this_week_holding,
+            this_week_backorder=this_week_backorder,
+            this_week_total=this_week_total,
+            cumulative_total=cumulative,
+        )
 
-    # PLAY-01: signals chart. Three traces tell the lag story: orders out,
-    # demand in, shipments in. Reading me.orders_placed_history etc. is
-    # permitted — it's the player's own station's history.
-    _render_history_chart(
-        orders_placed=me.orders_placed_history,
-        orders_received=me.orders_received_history,
-        shipments_received=me.shipments_received_history,
-    )
+        # Single-paragraph diagnostic naming what's happening and why it costs.
+        # No order suggestion — that would collapse the bullwhip discovery
+        # moment (AF-3). Just the dollars and the lag.
+        st.info(_diagnostic_message(view, health, this_week_holding, this_week_backorder))
+
+        # PLAY-01: signals chart. Three traces tell the lag story: orders out,
+        # demand in, shipments in. Reading me.orders_placed_history etc. is
+        # permitted — it's the player's own station's history.
+        _render_history_chart(
+            orders_placed=me.orders_placed_history,
+            orders_received=me.orders_received_history,
+            shipments_received=me.shipments_received_history,
+        )
 
     st.divider()
 
-    # PLAY-02: order form. st.form batches the rerun so reruns don't fire on
-    # every keystroke (Pitfall 12). clear_on_submit=True resets the input to
-    # value=4 after each submit so the player consciously decides each week.
-    with st.form("turn_form", clear_on_submit=True):
-        st.markdown("##### How many cases will you order this week?")
-        st.number_input(
-            "Order quantity",
-            min_value=0,   # blocks negatives at the UI (Pitfall 5)
-            step=1,        # blocks floats (Pitfall 5)
-            value=4,       # equilibrium throughput default
-            # CRITICAL: key="order_input" matches the read in app.py's
-            # submit_order callback. Pitfall 2 — DO NOT pass args= to the
-            # form_submit_button; that would capture the value at render time.
-            key="order_input",
-            label_visibility="collapsed",
-            # NO max_value: the canonical bullwhip can drive Factory orders to
-            # 30-80+; capping silently truncates (anti-feature AF-4).
-        )
-        st.form_submit_button(
-            "Advance to next week →",
-            on_click=on_submit,
-            type="primary",
-        )
+    # PLAY-02: order form, centered beneath both columns via a 1:2:1 spacer
+    # so the input itself isn't stretched all the way to 1100px. The whole
+    # play-and-decide flow now lives without any vertical scrolling on a
+    # standard 1080p display.
+    _, center, _ = st.columns([1, 2, 1])
+    with center:
+        with st.form("turn_form", clear_on_submit=True, border=True):
+            st.markdown("##### How many cases will you order this week?")
+            st.number_input(
+                "Order quantity",
+                min_value=0,   # blocks negatives at the UI (Pitfall 5)
+                step=1,        # blocks floats (Pitfall 5)
+                value=4,       # equilibrium throughput default
+                # CRITICAL: key="order_input" matches the read in app.py's
+                # submit_order callback. Pitfall 2 — DO NOT pass args= to the
+                # form_submit_button; that would capture the value at render
+                # time.
+                key="order_input",
+                label_visibility="collapsed",
+                # NO max_value: the canonical bullwhip can drive Factory orders
+                # to 30-80+; capping silently truncates (anti-feature AF-4).
+            )
+            st.form_submit_button(
+                "Advance to next week →",
+                on_click=on_submit,
+                type="primary",
+            )

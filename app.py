@@ -17,8 +17,8 @@ from beergame.views import debrief, play, rules, setup
 
 st.set_page_config(
     page_title="Beer Game",
-    page_icon=":beer_mug:",
-    layout="centered",
+    page_icon="🍺",
+    layout="wide",
 )
 
 
