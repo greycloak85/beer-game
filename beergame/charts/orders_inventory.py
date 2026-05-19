@@ -116,26 +116,26 @@ def build_four_panel(state: GameState) -> go.Figure:
         # chart blends with surrounding cards.
         paper_bgcolor="#222730",
         plot_bgcolor="#222730",
-        height=720,
-        margin=dict(l=40, r=30, t=70, b=40),
+        height=1000,
+        margin=dict(l=60, r=40, t=100, b=60),
         hovermode="x unified",
-        font=dict(size=14, color="#E8EAED"),
+        font=dict(size=28, color="#E8EAED"),
         legend=dict(
             orientation="h",
             yanchor="bottom", y=1.04,
             xanchor="right", x=1,
-            font=dict(size=14),
+            font=dict(size=28),
         ),
     )
     # Bottom panel only — the x-axis is shared across all rows.
     fig.update_xaxes(
-        title=dict(font=dict(size=15)),
-        tickfont=dict(size=13),
+        title=dict(font=dict(size=30)),
+        tickfont=dict(size=26),
         gridcolor="#2e333c",
     )
     fig.update_yaxes(
-        title=dict(text="Units", font=dict(size=14)),
-        tickfont=dict(size=12),
+        title=dict(text="Units", font=dict(size=28)),
+        tickfont=dict(size=24),
         gridcolor="#2e333c",
         col=1,
     )
@@ -145,6 +145,6 @@ def build_four_panel(state: GameState) -> go.Figure:
     # by make_subplots — bump their font size for legibility.
     for annotation in fig.layout.annotations:
         if annotation.text in _STATION_TITLES:
-            annotation.font = dict(size=15, color="#E8EAED")
+            annotation.font = dict(size=30, color="#E8EAED")
 
     return fig

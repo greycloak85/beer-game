@@ -101,12 +101,12 @@ def render(state: GameState, on_reset) -> None:
         st.markdown(
             f"<div style='text-align:left;'>"
             f"<div style='text-transform:uppercase;letter-spacing:0.06em;"
-            f"font-size:0.85rem;color:#9aa0a6;font-weight:600;'>"
+            f"font-size:1.7rem;color:#9aa0a6;font-weight:600;'>"
             f"Your final P&amp;L · {verdict}</div>"
-            f"<div style='font-size:2.4rem;font-weight:700;color:{pnl_color};"
+            f"<div style='font-size:4.8rem;font-weight:700;color:{pnl_color};"
             f"line-height:1.2;margin-top:0.2rem;'>"
             f"{_signed_dollars(player_pnl['net'])}</div>"
-            f"<div style='font-size:0.85rem;color:#9aa0a6;'>"
+            f"<div style='font-size:1.7rem;color:#9aa0a6;'>"
             f"${player_pnl['revenue']:,.2f} earned shipping cases "
             f"&minus; ${player_pnl['cost']:,.2f} in holding + backorder fees"
             f"</div></div>",

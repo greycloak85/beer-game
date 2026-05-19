@@ -39,24 +39,25 @@ _PLAY_CSS = """
 <style>
 /* Bigger metric values (the dollar numbers in the money meter) */
 [data-testid="stMetricValue"] {
-    font-size: 1.9rem !important;
+    font-size: 3.8rem !important;
     font-weight: 700 !important;
 }
 [data-testid="stMetricLabel"] {
-    font-size: 0.95rem !important;
+    font-size: 1.9rem !important;
 }
 /* Make captions a touch more legible */
 [data-testid="stCaptionContainer"], .stCaption {
-    font-size: 0.9rem !important;
+    font-size: 1.8rem !important;
 }
 /* Info / success / warning boxes — bump body text */
 [data-testid="stAlert"] {
-    font-size: 1.05rem !important;
-    padding: 0.9rem 1rem !important;
+    font-size: 2.1rem !important;
+    padding: 1.4rem 1.6rem !important;
+    line-height: 1.45 !important;
 }
 /* Big-number font used in the status cards — applied via a custom class */
 .bg-bignum {
-    font-size: 3.4rem !important;
+    font-size: 6.8rem !important;
     font-weight: 700 !important;
     line-height: 1.05 !important;
     margin: 0.15rem 0 0.25rem 0 !important;
@@ -69,36 +70,36 @@ _PLAY_CSS = """
 .bg-cardlabel {
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 0.78rem;
+    font-size: 1.56rem;
     color: #9aa0a6;
     font-weight: 600;
 }
 .bg-cardfoot {
-    font-size: 0.85rem;
+    font-size: 1.7rem;
     color: #b8bcc2;
 }
 /* P&L meter cells — bigger than st.metric, color-coded by sign */
 .pnl-cell {
-    padding: 0.6rem 0.8rem;
-    border-radius: 8px;
+    padding: 0.9rem 1.1rem;
+    border-radius: 10px;
     background: #1a1e25;
     border: 1px solid #2a2f38;
 }
 .pnl-label {
     text-transform: uppercase;
     letter-spacing: 0.06em;
-    font-size: 0.78rem;
+    font-size: 1.56rem;
     color: #9aa0a6;
     font-weight: 600;
 }
 .pnl-value {
-    font-size: 1.8rem;
+    font-size: 3.6rem;
     font-weight: 700;
     line-height: 1.2;
     margin-top: 0.2rem;
 }
 .pnl-value-big {
-    font-size: 2.4rem;
+    font-size: 4.8rem;
     font-weight: 700;
     line-height: 1.1;
     margin-top: 0.2rem;
@@ -107,21 +108,21 @@ _PLAY_CSS = """
 .pnl-red    { color: #ff5d6a; }
 .pnl-gray   { color: #cfd2d6; }
 .pnl-foot {
-    font-size: 0.8rem;
+    font-size: 1.6rem;
     color: #9aa0a6;
     margin-top: 0.2rem;
 }
 /* Order input — much larger numerals so 4 vs 40 vs 400 isn't a squint */
 [data-testid="stNumberInput"] input {
-    font-size: 1.6rem !important;
+    font-size: 3.2rem !important;
     font-weight: 600 !important;
-    height: 3rem !important;
+    height: 5rem !important;
 }
 /* Form submit button — bigger, bolder */
 [data-testid="stFormSubmitButton"] button {
-    font-size: 1.1rem !important;
+    font-size: 2.2rem !important;
     font-weight: 600 !important;
-    padding: 0.6rem 1.4rem !important;
+    padding: 1rem 2rem !important;
 }
 </style>
 """
@@ -247,7 +248,7 @@ def _render_hero(role_name: str, week: int, total_weeks: int,
     left, mid, right = st.columns([3, 2, 2])
     with left:
         st.markdown(
-            f"<div style='font-size:2.2rem;font-weight:700;line-height:1.1;'>"
+            f"<div style='font-size:4.4rem;font-weight:700;line-height:1.1;'>"
             f"\U0001F37A {role_name} "
             f"<span style='opacity:0.55;font-weight:500;font-size:0.7em;'>"
             f"· Week {week} of {total_weeks}</span></div>",
@@ -266,7 +267,7 @@ def _render_hero(role_name: str, week: int, total_weeks: int,
     with right:
         # Health pill on the far right.
         st.markdown(
-            f"<div style='text-align:right;font-size:1.8rem;font-weight:700;"
+            f"<div style='text-align:right;font-size:3.6rem;font-weight:700;"
             f"color:{_PILL_CSS_COLOR[health]};letter-spacing:0.08em;"
             f"line-height:1.4;'>"
             f"● {label}</div>",
@@ -382,7 +383,7 @@ def _render_pnl_meter(pnl: dict) -> None:
     """
     with st.container(border=True):
         st.markdown(
-            "<div style='font-weight:600;font-size:1.05rem;margin-bottom:0.5rem;'>"
+            "<div style='font-weight:600;font-size:2.1rem;margin-bottom:0.5rem;'>"
             "\U0001F4B0 This week's P&amp;L"
             "</div>",
             unsafe_allow_html=True,
@@ -494,7 +495,7 @@ def _render_history_chart(orders_placed: tuple[int, ...],
     # Section header lives OUTSIDE the Plotly figure so it doesn't collide
     # with the horizontal legend (which sits at y=1.04 inside the figure).
     st.markdown(
-        "<div style='font-weight:600;font-size:1.05rem;margin:0.6rem 0 0.4rem 0;'>"
+        "<div style='font-weight:600;font-size:2.1rem;margin:0.6rem 0 0.4rem 0;'>"
         "\U0001F4C8 Your signals over time"
         "</div>",
         unsafe_allow_html=True,
@@ -511,8 +512,8 @@ def _render_history_chart(orders_placed: tuple[int, ...],
         y=list(orders_placed),
         mode="lines+markers",
         name="Your orders",
-        line=dict(color="#60a5fa", width=4),
-        marker=dict(size=9),
+        line=dict(color="#60a5fa", width=7),
+        marker=dict(size=14),
     ))
     if orders_received:
         recv_weeks = list(range(1, len(orders_received) + 1))
@@ -521,8 +522,8 @@ def _render_history_chart(orders_placed: tuple[int, ...],
             y=list(orders_received),
             mode="lines+markers",
             name="Demand from downstream",
-            line=dict(color="#ff5d6a", width=4, dash="dot"),
-            marker=dict(size=8),
+            line=dict(color="#ff5d6a", width=7, dash="dot"),
+            marker=dict(size=13),
         ))
     if shipments_received:
         ship_weeks = list(range(1, len(shipments_received) + 1))
@@ -531,8 +532,8 @@ def _render_history_chart(orders_placed: tuple[int, ...],
             y=list(shipments_received),
             mode="lines+markers",
             name="Shipments you got",
-            line=dict(color="#4ade80", width=4, dash="dash"),
-            marker=dict(size=8),
+            line=dict(color="#4ade80", width=7, dash="dash"),
+            marker=dict(size=13),
         ))
 
     fig.update_layout(
@@ -541,23 +542,23 @@ def _render_history_chart(orders_placed: tuple[int, ...],
         # blends seamlessly with the surrounding cards.
         paper_bgcolor="#222730",
         plot_bgcolor="#222730",
-        height=360,
-        margin=dict(l=20, r=20, t=50, b=20),
-        font=dict(size=15, color="#E8EAED"),
+        height=460,
+        margin=dict(l=30, r=30, t=70, b=40),
+        font=dict(size=30, color="#E8EAED"),
         xaxis=dict(
-            title=dict(text="Week", font=dict(size=15)),
-            tickfont=dict(size=14),
+            title=dict(text="Week", font=dict(size=30)),
+            tickfont=dict(size=28),
             gridcolor="#2e333c",
         ),
         yaxis=dict(
-            title=dict(text="Units", font=dict(size=15)),
-            tickfont=dict(size=14),
+            title=dict(text="Units", font=dict(size=30)),
+            tickfont=dict(size=28),
             gridcolor="#2e333c",
         ),
         legend=dict(
             orientation="h", yanchor="bottom", y=1.04,
             xanchor="left", x=0.0,
-            font=dict(size=14),
+            font=dict(size=28),
         ),
         # No in-figure title — it would collide with the horizontal legend.
         # The section header is rendered above the chart via st.markdown so
@@ -661,7 +662,12 @@ def render(state: GameState, on_submit) -> None:
     _, center, _ = st.columns([1, 2, 1])
     with center:
         with st.form("turn_form", clear_on_submit=True, border=True):
-            st.markdown("##### How many cases will you order this week?")
+            st.markdown(
+                "<div style='font-weight:600;font-size:2.4rem;"
+                "margin-bottom:0.6rem;'>"
+                "How many cases will you order this week?</div>",
+                unsafe_allow_html=True,
+            )
             st.number_input(
                 "Order quantity",
                 min_value=0,   # blocks negatives at the UI (Pitfall 5)
