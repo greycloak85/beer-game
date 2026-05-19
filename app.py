@@ -6,6 +6,9 @@ this file (via callbacks) — views are pure render functions.
 
 See .planning/phases/02-ui-shell-per-turn-play/02-RESEARCH.md, Architecture
 Pattern 1, for the canonical reference.
+
+# Deploy nudge: 2026-05-19 — force Streamlit Cloud to rebuild after the
+# order-form relocation commit (9e1a9dd) wasn't picked up automatically.
 """
 import streamlit as st
 
