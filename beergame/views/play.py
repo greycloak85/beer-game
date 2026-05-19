@@ -618,11 +618,13 @@ def render(state: GameState, on_submit) -> None:
 
     st.divider()
 
-    # Two-column main body. Wide layout (set in app.py) gives us ~1100px to
-    # work with — splitting roughly 40/60 puts the four status cards in a
-    # comfortable left rail and gives the chart the wider half of the screen.
-    # The order form sits CENTERED beneath both columns so the player doesn't
-    # have to scroll between "read state" and "decide order".
+    # Two-column main body. Wide layout (set in app.py) gives us ~1900px to
+    # work with — splitting roughly 40/60 puts the four status cards + order
+    # form in the left column and the P&L meter + diagnostic + chart on the
+    # right. The order form lives directly under the cards (which only fill
+    # the top portion of the left column), so the empty space below the cards
+    # gets used and the player never has to scroll between "read state" and
+    # "decide order".
     left, right = st.columns([2, 3], gap="large")
 
     with left:
@@ -635,32 +637,9 @@ def render(state: GameState, on_submit) -> None:
             station_backlog_history=me.backlog_history,
         )
 
-    with right:
-        # P&L meter — the winning/losing scoreboard.
-        _render_pnl_meter(pnl)
-
-        # Single-paragraph diagnostic naming what's happening and why it costs.
-        # No order suggestion — that would collapse the bullwhip discovery
-        # moment (AF-3). Just the dollars and the lag.
-        st.info(_diagnostic_message(view, health, this_week_holding, this_week_backorder))
-
-        # PLAY-01: signals chart. Three traces tell the lag story: orders out,
-        # demand in, shipments in. Reading me.orders_placed_history etc. is
-        # permitted — it's the player's own station's history.
-        _render_history_chart(
-            orders_placed=me.orders_placed_history,
-            orders_received=me.orders_received_history,
-            shipments_received=me.shipments_received_history,
-        )
-
-    st.divider()
-
-    # PLAY-02: order form, centered beneath both columns via a 1:2:1 spacer
-    # so the input itself isn't stretched all the way to 1100px. The whole
-    # play-and-decide flow now lives without any vertical scrolling on a
-    # standard 1080p display.
-    _, center, _ = st.columns([1, 2, 1])
-    with center:
+        # PLAY-02: order form, tucked under the cards in the same column.
+        # Small top margin separates it from the 2x2 grid above.
+        st.markdown("<div style='height:0.75rem'></div>", unsafe_allow_html=True)
         with st.form("turn_form", clear_on_submit=True, border=True):
             st.markdown(
                 "<div style='font-weight:600;font-size:2.4rem;"
@@ -687,3 +666,21 @@ def render(state: GameState, on_submit) -> None:
                 on_click=on_submit,
                 type="primary",
             )
+
+    with right:
+        # P&L meter — the winning/losing scoreboard.
+        _render_pnl_meter(pnl)
+
+        # Single-paragraph diagnostic naming what's happening and why it costs.
+        # No order suggestion — that would collapse the bullwhip discovery
+        # moment (AF-3). Just the dollars and the lag.
+        st.info(_diagnostic_message(view, health, this_week_holding, this_week_backorder))
+
+        # PLAY-01: signals chart. Three traces tell the lag story: orders out,
+        # demand in, shipments in. Reading me.orders_placed_history etc. is
+        # permitted — it's the player's own station's history.
+        _render_history_chart(
+            orders_placed=me.orders_placed_history,
+            orders_received=me.orders_received_history,
+            shipments_received=me.shipments_received_history,
+        )
