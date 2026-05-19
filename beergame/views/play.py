@@ -24,7 +24,11 @@ player make their own decision under uncertainty.
 import plotly.graph_objects as go
 import streamlit as st
 
-from beergame.config.costs import BACKORDER_COST, HOLDING_COST
+from beergame.config.costs import (
+    BACKORDER_COST,
+    HOLDING_COST,
+    REVENUE_PER_UNIT_SHIPPED,
+)
 from beergame.engine.state import GameState, build_station_view
 
 
@@ -72,6 +76,40 @@ _PLAY_CSS = """
 .bg-cardfoot {
     font-size: 0.85rem;
     color: #b8bcc2;
+}
+/* P&L meter cells — bigger than st.metric, color-coded by sign */
+.pnl-cell {
+    padding: 0.6rem 0.8rem;
+    border-radius: 8px;
+    background: #1a1e25;
+    border: 1px solid #2a2f38;
+}
+.pnl-label {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: #9aa0a6;
+    font-weight: 600;
+}
+.pnl-value {
+    font-size: 1.8rem;
+    font-weight: 700;
+    line-height: 1.2;
+    margin-top: 0.2rem;
+}
+.pnl-value-big {
+    font-size: 2.4rem;
+    font-weight: 700;
+    line-height: 1.1;
+    margin-top: 0.2rem;
+}
+.pnl-green  { color: #4ade80; }
+.pnl-red    { color: #ff5d6a; }
+.pnl-gray   { color: #cfd2d6; }
+.pnl-foot {
+    font-size: 0.8rem;
+    color: #9aa0a6;
+    margin-top: 0.2rem;
 }
 /* Order input — much larger numerals so 4 vs 40 vs 400 isn't a squint */
 [data-testid="stNumberInput"] input {
@@ -125,7 +163,7 @@ def _color_for_health(health: str) -> str:
     return _HEALTH_LABELS[health][1]
 
 
-# --- Cost helpers ---------------------------------------------------------- #
+# --- Cost + P&L helpers ---------------------------------------------------- #
 def _weekly_cost_split(inventory: int, backlog: int) -> tuple[float, float, float]:
     """Replicates ``engine.costs.weekly_cost`` but exposes the holding vs
     backorder split so the UI can name where the bleed is coming from.
@@ -135,11 +173,78 @@ def _weekly_cost_split(inventory: int, backlog: int) -> tuple[float, float, floa
     return holding, backorder, holding + backorder
 
 
+def _pnl_snapshot(shipments_sent: tuple[int, ...],
+                  cost_history: tuple[float, ...]) -> dict:
+    """Compute the per-week and cumulative P&L for the player's station.
+
+    Revenue model is a UI-side concept (see beergame/config/costs.py):
+    each unit shipped downstream pays REVENUE_PER_UNIT_SHIPPED. Cost is the
+    engine's already-recorded holding + backorder cost. Net = revenue - cost.
+
+    Returns a dict with this-week and cumulative figures so the meter and the
+    hero strip both render the same numbers without recomputing.
+    """
+    cum_shipped = sum(shipments_sent)
+    cum_revenue = cum_shipped * REVENUE_PER_UNIT_SHIPPED
+    cum_cost = cost_history[-1] if cost_history else 0.0
+    cum_net = cum_revenue - cum_cost
+
+    if shipments_sent:
+        this_week_shipped = shipments_sent[-1]
+        this_week_revenue = this_week_shipped * REVENUE_PER_UNIT_SHIPPED
+    else:
+        this_week_shipped = 0
+        this_week_revenue = 0.0
+
+    if len(cost_history) >= 2:
+        this_week_cost = cost_history[-1] - cost_history[-2]
+    elif cost_history:
+        this_week_cost = cost_history[0]
+    else:
+        this_week_cost = 0.0
+
+    this_week_net = this_week_revenue - this_week_cost
+
+    return {
+        "this_week_shipped": this_week_shipped,
+        "this_week_revenue": this_week_revenue,
+        "this_week_cost": this_week_cost,
+        "this_week_net": this_week_net,
+        "cum_revenue": cum_revenue,
+        "cum_cost": cum_cost,
+        "cum_net": cum_net,
+        "cum_shipped": cum_shipped,
+    }
+
+
+def _pnl_class(value: float) -> str:
+    """Sign-to-color CSS class. Zero is grey, positive green, negative red."""
+    if value > 0.01:
+        return "pnl-green"
+    if value < -0.01:
+        return "pnl-red"
+    return "pnl-gray"
+
+
+def _signed_dollars(value: float) -> str:
+    """Format a dollar value with an explicit sign so winning vs losing is
+    unambiguous at a glance. +$24.50 / -$187.00 / $0.00."""
+    if value > 0.01:
+        return f"+${value:,.2f}"
+    if value < -0.01:
+        return f"-${abs(value):,.2f}"
+    return "$0.00"
+
+
 # --- Hero + cards ---------------------------------------------------------- #
-def _render_hero(role_name: str, week: int, total_weeks: int, health: str) -> None:
-    """Role + week + status pill. Top of the page, sets the emotional tone."""
+def _render_hero(role_name: str, week: int, total_weeks: int,
+                  health: str, cum_net: float) -> None:
+    """Role + week + running P&L + status pill. Three cells across the top so
+    the player can see at a glance: who they are, how much money they're up or
+    down, and how their station's state is trending.
+    """
     label, _color, _ = _HEALTH_LABELS[health]
-    left, right = st.columns([3, 2])
+    left, mid, right = st.columns([3, 2, 2])
     with left:
         st.markdown(
             f"<div style='font-size:2.2rem;font-weight:700;line-height:1.1;'>"
@@ -148,9 +253,18 @@ def _render_hero(role_name: str, week: int, total_weeks: int, health: str) -> No
             f"· Week {week} of {total_weeks}</span></div>",
             unsafe_allow_html=True,
         )
+    with mid:
+        # Cumulative P&L — the headline scoreboard number.
+        pnl_class = _pnl_class(cum_net)
+        st.markdown(
+            f"<div style='text-align:center;line-height:1.15;'>"
+            f"<div class='pnl-label' style='text-align:center;'>NET PROFIT</div>"
+            f"<div class='pnl-value-big {pnl_class}'>{_signed_dollars(cum_net)}</div>"
+            f"</div>",
+            unsafe_allow_html=True,
+        )
     with right:
-        # The pill is intentionally large and right-aligned — it's the first
-        # thing the player should read each turn.
+        # Health pill on the far right.
         st.markdown(
             f"<div style='text-align:right;font-size:1.8rem;font-weight:700;"
             f"color:{_PILL_CSS_COLOR[health]};letter-spacing:0.08em;"
@@ -261,23 +375,68 @@ def _render_status_cards(view, station_inventory_history: tuple[int, ...],
             st.markdown(_cardfoot(foot), unsafe_allow_html=True)
 
 
-def _render_money_meter(this_week_holding: float, this_week_backorder: float,
-                        this_week_total: float, cumulative_total: float) -> None:
-    """The dollar bleed, all in one strip. This is the new thing the user asked
-    for — make the cost legible every turn so the lesson lands turn-by-turn,
-    not just at the debrief.
+def _render_pnl_meter(pnl: dict) -> None:
+    """Profit-and-loss meter — revenue from shipping, cost of carrying
+    inventory + backlog, net (the score). Big-number, color-coded cells so
+    winning vs losing is obvious at a glance.
     """
     with st.container(border=True):
-        st.markdown("**:moneybag: This week**")
+        st.markdown(
+            "<div style='font-weight:600;font-size:1.05rem;margin-bottom:0.5rem;'>"
+            "\U0001F4B0 This week's P&amp;L"
+            "</div>",
+            unsafe_allow_html=True,
+        )
         a, b, c, d = st.columns(4)
-        a.metric("Holding cost", f"${this_week_holding:.2f}",
-                 help="$0.50 per case per week of inventory you sat on.")
-        b.metric("Backorder cost", f"${this_week_backorder:.2f}",
-                 help="$1.00 per case per week of demand you couldn't fill. "
-                      "Twice as expensive as holding inventory.")
-        c.metric("Week total", f"${this_week_total:.2f}")
-        d.metric("Cumulative", f"${cumulative_total:.2f}",
-                 help="Your station's total cost since week 1.")
+
+        with a:
+            st.markdown(
+                f"<div class='pnl-cell'>"
+                f"<div class='pnl-label'>REVENUE</div>"
+                f"<div class='pnl-value pnl-green'>"
+                f"+${pnl['this_week_revenue']:,.2f}</div>"
+                f"<div class='pnl-foot'>{pnl['this_week_shipped']} cases shipped "
+                f"× ${REVENUE_PER_UNIT_SHIPPED:.2f}</div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        with b:
+            st.markdown(
+                f"<div class='pnl-cell'>"
+                f"<div class='pnl-label'>COSTS</div>"
+                f"<div class='pnl-value pnl-red'>"
+                f"-${pnl['this_week_cost']:,.2f}</div>"
+                f"<div class='pnl-foot'>holding + backorder fees</div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        with c:
+            net_class = _pnl_class(pnl['this_week_net'])
+            verdict = ("WINNING" if pnl['this_week_net'] > 0.01
+                       else "LOSING" if pnl['this_week_net'] < -0.01
+                       else "BREAK-EVEN")
+            st.markdown(
+                f"<div class='pnl-cell'>"
+                f"<div class='pnl-label'>NET THIS WEEK</div>"
+                f"<div class='pnl-value {net_class}'>"
+                f"{_signed_dollars(pnl['this_week_net'])}</div>"
+                f"<div class='pnl-foot'>{verdict}</div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
+        with d:
+            cum_class = _pnl_class(pnl['cum_net'])
+            st.markdown(
+                f"<div class='pnl-cell'>"
+                f"<div class='pnl-label'>GAME TOTAL</div>"
+                f"<div class='pnl-value {cum_class}'>"
+                f"{_signed_dollars(pnl['cum_net'])}</div>"
+                f"<div class='pnl-foot'>"
+                f"${pnl['cum_revenue']:,.0f} rev − ${pnl['cum_cost']:,.0f} cost"
+                f"</div>"
+                f"</div>",
+                unsafe_allow_html=True,
+            )
 
 
 def _diagnostic_message(view, health: str,
@@ -332,6 +491,15 @@ def _render_history_chart(orders_placed: tuple[int, ...],
     upstream). Lets the player see the lag between asking and receiving — the
     physical mechanism the bullwhip exploits.
     """
+    # Section header lives OUTSIDE the Plotly figure so it doesn't collide
+    # with the horizontal legend (which sits at y=1.04 inside the figure).
+    st.markdown(
+        "<div style='font-weight:600;font-size:1.05rem;margin:0.6rem 0 0.4rem 0;'>"
+        "\U0001F4C8 Your signals over time"
+        "</div>",
+        unsafe_allow_html=True,
+    )
+
     if not orders_placed:
         st.caption("Your history chart will appear after your first order.")
         return
@@ -391,11 +559,9 @@ def _render_history_chart(orders_placed: tuple[int, ...],
             xanchor="left", x=0.0,
             font=dict(size=14),
         ),
-        title=dict(
-            text="Your signals over time",
-            x=0.0, xanchor="left",
-            font=dict(size=18, color="#E8EAED"),
-        ),
+        # No in-figure title — it would collide with the horizontal legend.
+        # The section header is rendered above the chart via st.markdown so
+        # both elements have their own space.
     )
     # Don't force a y-range — the prior version forced 3-5 which hid all the
     # action when downstream orders spike to 20-40+.
@@ -424,7 +590,13 @@ def render(state: GameState, on_submit) -> None:
     this_week_holding, this_week_backorder, this_week_total = _weekly_cost_split(
         view.inventory, view.backlog,
     )
-    cumulative = me.cost_history[-1] if me.cost_history else 0.0
+
+    # P&L snapshot — render-only scoring concept layered on top of the engine's
+    # cost ledger. Revenue model in beergame/config/costs.py.
+    pnl = _pnl_snapshot(
+        shipments_sent=state.stations[role.value].shipments_sent_history,
+        cost_history=me.cost_history,
+    )
 
     health = _classify_health(view.inventory, view.backlog)
 
@@ -436,6 +608,7 @@ def render(state: GameState, on_submit) -> None:
         week=state.week + 1,
         total_weeks=state.total_weeks,
         health=health,
+        cum_net=pnl["cum_net"],
     )
 
     # Status pill subtitle (one line under the hero strip).
@@ -462,13 +635,8 @@ def render(state: GameState, on_submit) -> None:
         )
 
     with right:
-        # The dollar-cost meter.
-        _render_money_meter(
-            this_week_holding=this_week_holding,
-            this_week_backorder=this_week_backorder,
-            this_week_total=this_week_total,
-            cumulative_total=cumulative,
-        )
+        # P&L meter — the winning/losing scoreboard.
+        _render_pnl_meter(pnl)
 
         # Single-paragraph diagnostic naming what's happening and why it costs.
         # No order suggestion — that would collapse the bullwhip discovery

@@ -129,7 +129,7 @@ def test_debrief_renders_with_real_content_after_36_weeks_as_retailer():
     without exception:
 
     - Headline ``st.metric`` labeled "Bullwhip amplification" (DEB-03).
-    - ``st.subheader`` "Cost breakdown" (DEB-04).
+    - ``st.subheader`` "Scoreboard" — the cost+P&L breakdown table (DEB-04).
     - ``st.subheader`` "What just happened" (DEB-05).
     - ``st.button`` "Play again" (DEB-06).
 
@@ -160,8 +160,8 @@ def test_debrief_renders_with_real_content_after_36_weeks_as_retailer():
     )
 
     subheader_values = [s.value for s in at.subheader]
-    assert any("Cost breakdown" in v for v in subheader_values), (
-        f"Cost breakdown subheader missing. Got: {subheader_values}"
+    assert any("Scoreboard" in v for v in subheader_values), (
+        f"Scoreboard (cost + P&L) subheader missing. Got: {subheader_values}"
     )
     assert any("What just happened" in v for v in subheader_values), (
         f"Narrative subheader missing. Got: {subheader_values}"
