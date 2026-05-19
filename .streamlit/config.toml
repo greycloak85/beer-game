@@ -1,13 +1,20 @@
-# Streamlit app config. Phase 2 sets just enough to brand the page;
-# Phase 4 may extend with serverPort overrides etc.
+# Streamlit app config — dark mode, modern grey backgrounds, amber accent
+# that nods to the "beer" theme without being garish.
+#
+# Streamlit Cloud reads this file at deploy time and uses these values to
+# theme the running app. The end user can still override via the gear menu
+# in the deployed app, but these are the defaults we ship.
 
 [theme]
-base = "light"
-primaryColor = "#7B3F00"          # amber/beer color — accent for primary buttons
+base = "dark"
+primaryColor = "#FFB347"             # warm amber for primary buttons + accents
+backgroundColor = "#161a1f"          # deep neutral grey for the canvas
+secondaryBackgroundColor = "#222730" # slightly lifted grey for cards / forms
+textColor = "#E8EAED"                # off-white body text — easier on eyes than #fff
+font = "sans-serif"
 
 [server]
-headless = true                    # safe default for CLI / containers; Streamlit Cloud
-                                   # overrides as needed.
+headless = true                      # safe default for CLI / containers
 
 [browser]
-gatherUsageStats = false           # don't ship usage telemetry to Streamlit Inc by default
+gatherUsageStats = false             # don't ship usage telemetry to Streamlit Inc

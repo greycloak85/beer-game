@@ -32,11 +32,10 @@ _STATION_TITLES = ("Retailer", "Wholesaler", "Distributor", "Factory")
 # bullwhip era. Off-by-one trap is Pitfall 1 in 03-RESEARCH.md.
 _STEP_WEEK = CLASSIC_STEP_BREAK_WEEK + 1  # = 5
 
-# Plotly default qualitative palette colors (Tableau / d3): blue for orders,
-# orange for inventory. Dotted inventory line so the two are distinguishable
-# even on a monochrome printout.
-_ORDERS_COLOR = "#1f77b4"
-_INVENTORY_COLOR = "#ff7f0e"
+# Dark-mode-friendly palette — vivid enough to read on a #222730 background.
+# Orders curve is the primary visual (the one that amplifies upstream).
+_ORDERS_COLOR = "#60a5fa"      # cool blue
+_INVENTORY_COLOR = "#ffa94d"   # warm orange, dotted (distinguishable monochrome)
 
 
 def build_four_panel(state: GameState) -> go.Figure:
@@ -78,7 +77,8 @@ def build_four_panel(state: GameState) -> go.Figure:
                 name="Orders placed",
                 legendgroup="orders",
                 showlegend=(row == 1),  # legend rendered once at the top
-                line=dict(color=_ORDERS_COLOR),
+                line=dict(color=_ORDERS_COLOR, width=3),
+                marker=dict(size=6),
             ),
             row=row, col=1,
         )
@@ -93,7 +93,7 @@ def build_four_panel(state: GameState) -> go.Figure:
                 name="Inventory",
                 legendgroup="inventory",
                 showlegend=(row == 1),
-                line=dict(color=_INVENTORY_COLOR, dash="dot"),
+                line=dict(color=_INVENTORY_COLOR, dash="dot", width=3),
             ),
             row=row, col=1,
         )
@@ -111,17 +111,40 @@ def build_four_panel(state: GameState) -> go.Figure:
     )
 
     fig.update_layout(
-        height=700,
-        margin=dict(l=30, r=30, t=50, b=30),
+        template="plotly_dark",
+        # Match the secondaryBackgroundColor from .streamlit/config.toml so the
+        # chart blends with surrounding cards.
+        paper_bgcolor="#222730",
+        plot_bgcolor="#222730",
+        height=720,
+        margin=dict(l=40, r=30, t=70, b=40),
         hovermode="x unified",
+        font=dict(size=14, color="#E8EAED"),
         legend=dict(
             orientation="h",
             yanchor="bottom", y=1.04,
             xanchor="right", x=1,
+            font=dict(size=14),
         ),
     )
     # Bottom panel only — the x-axis is shared across all rows.
+    fig.update_xaxes(
+        title=dict(font=dict(size=15)),
+        tickfont=dict(size=13),
+        gridcolor="#2e333c",
+    )
+    fig.update_yaxes(
+        title=dict(text="Units", font=dict(size=14)),
+        tickfont=dict(size=12),
+        gridcolor="#2e333c",
+        col=1,
+    )
     fig.update_xaxes(title_text="Week", row=4, col=1)
-    fig.update_yaxes(title_text="Units", col=1)
+
+    # Subplot titles ("Retailer", "Wholesaler" ...) are rendered as annotations
+    # by make_subplots — bump their font size for legibility.
+    for annotation in fig.layout.annotations:
+        if annotation.text in _STATION_TITLES:
+            annotation.font = dict(size=15, color="#E8EAED")
 
     return fig

@@ -28,6 +28,67 @@ from beergame.config.costs import BACKORDER_COST, HOLDING_COST
 from beergame.engine.state import GameState, build_station_view
 
 
+# CSS injected once per rerun to bump font sizes on st.metric, st.caption,
+# st.info, and our bordered cards. Streamlit's defaults are sized for compact
+# dashboards; this is a game UI that needs to be readable from across the room.
+_PLAY_CSS = """
+<style>
+/* Bigger metric values (the dollar numbers in the money meter) */
+[data-testid="stMetricValue"] {
+    font-size: 1.9rem !important;
+    font-weight: 700 !important;
+}
+[data-testid="stMetricLabel"] {
+    font-size: 0.95rem !important;
+}
+/* Make captions a touch more legible */
+[data-testid="stCaptionContainer"], .stCaption {
+    font-size: 0.9rem !important;
+}
+/* Info / success / warning boxes — bump body text */
+[data-testid="stAlert"] {
+    font-size: 1.05rem !important;
+    padding: 0.9rem 1rem !important;
+}
+/* Big-number font used in the status cards — applied via a custom class */
+.bg-bignum {
+    font-size: 3.4rem !important;
+    font-weight: 700 !important;
+    line-height: 1.05 !important;
+    margin: 0.15rem 0 0.25rem 0 !important;
+}
+.bg-bignum-red    { color: #ff5d6a !important; }
+.bg-bignum-orange { color: #ffa94d !important; }
+.bg-bignum-green  { color: #4ade80 !important; }
+.bg-bignum-blue   { color: #60a5fa !important; }
+.bg-bignum-gray   { color: #cfd2d6 !important; }
+.bg-cardlabel {
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    font-size: 0.78rem;
+    color: #9aa0a6;
+    font-weight: 600;
+}
+.bg-cardfoot {
+    font-size: 0.85rem;
+    color: #b8bcc2;
+}
+/* Order input — much larger numerals so 4 vs 40 vs 400 isn't a squint */
+[data-testid="stNumberInput"] input {
+    font-size: 1.6rem !important;
+    font-weight: 600 !important;
+    height: 3rem !important;
+}
+/* Form submit button — bigger, bolder */
+[data-testid="stFormSubmitButton"] button {
+    font-size: 1.1rem !important;
+    font-weight: 600 !important;
+    padding: 0.6rem 1.4rem !important;
+}
+</style>
+"""
+
+
 # --- Health classification ------------------------------------------------- #
 # Four states the player's station can be in. Drives the hero pill color, the
 # inventory/backlog card tinting, and the diagnostic copy.
@@ -77,20 +138,23 @@ def _weekly_cost_split(inventory: int, backlog: int) -> tuple[float, float, floa
 # --- Hero + cards ---------------------------------------------------------- #
 def _render_hero(role_name: str, week: int, total_weeks: int, health: str) -> None:
     """Role + week + status pill. Top of the page, sets the emotional tone."""
-    label, color, _ = _HEALTH_LABELS[health]
+    label, _color, _ = _HEALTH_LABELS[health]
     left, right = st.columns([3, 2])
     with left:
         st.markdown(
-            f"### \U0001F37A {role_name} · "
-            f"<span style='opacity:0.7;font-weight:400'>Week {week} of {total_weeks}</span>",
+            f"<div style='font-size:2.2rem;font-weight:700;line-height:1.1;'>"
+            f"\U0001F37A {role_name} "
+            f"<span style='opacity:0.55;font-weight:500;font-size:0.7em;'>"
+            f"· Week {week} of {total_weeks}</span></div>",
             unsafe_allow_html=True,
         )
     with right:
         # The pill is intentionally large and right-aligned — it's the first
         # thing the player should read each turn.
         st.markdown(
-            f"<div style='text-align:right;font-size:1.5em;font-weight:700;"
-            f"color:{_PILL_CSS_COLOR[health]};letter-spacing:0.05em;'>"
+            f"<div style='text-align:right;font-size:1.8rem;font-weight:700;"
+            f"color:{_PILL_CSS_COLOR[health]};letter-spacing:0.08em;"
+            f"line-height:1.4;'>"
             f"● {label}</div>",
             unsafe_allow_html=True,
         )
@@ -99,10 +163,10 @@ def _render_hero(role_name: str, week: int, total_weeks: int, health: str) -> No
 # CSS color names map (Streamlit's :color[] markdown supports named colors but
 # the inline HTML pill above needs a real CSS color).
 _PILL_CSS_COLOR = {
-    _HEALTH_CRISIS:   "#d62728",
-    _HEALTH_STRAINED: "#ff7f0e",
-    _HEALTH_STABLE:   "#2ca02c",
-    _HEALTH_SURPLUS:  "#1f77b4",
+    _HEALTH_CRISIS:   "#ff5d6a",   # vivid red — pops on dark background
+    _HEALTH_STRAINED: "#ffa94d",
+    _HEALTH_STABLE:   "#4ade80",
+    _HEALTH_SURPLUS:  "#60a5fa",
 }
 
 
@@ -118,14 +182,30 @@ def _trend_delta(history: tuple[int, ...]) -> str | None:
     return f"{sign}{diff} vs last week"
 
 
+def _bignum(value, color: str) -> str:
+    """Render an HTML big-number block via the .bg-bignum CSS class.
+    ``color`` is one of red / orange / green / blue / gray (matches the CSS
+    color modifiers defined in _PLAY_CSS).
+    """
+    return (
+        f"<div class='bg-bignum bg-bignum-{color}'>{value}</div>"
+    )
+
+
+def _cardlabel(text: str) -> str:
+    return f"<div class='bg-cardlabel'>{text}</div>"
+
+
+def _cardfoot(text: str) -> str:
+    return f"<div class='bg-cardfoot'>{text}</div>"
+
+
 def _render_status_cards(view, station_inventory_history: tuple[int, ...],
                           station_backlog_history: tuple[int, ...]) -> None:
-    """Four bordered cards stacked vertically. The caller places this inside an
-    outer column so each card spans that column's full width — gives the labels
-    room to breathe (e.g., "Order from downstream this week").
-
-    Inventory and backlog get color-coded big numbers; shipments-in and
-    orders-out get neutral numbers with trend annotation.
+    """Four bordered cards arranged in a 2x2 grid inside the caller's column.
+    Big-number CSS class scales the value to ~3.4rem (vs Streamlit's default
+    h1 of ~2rem), so the player can read the state at a glance without
+    leaning into the screen.
     """
     inv = view.inventory
     bl = view.backlog
@@ -133,40 +213,52 @@ def _render_status_cards(view, station_inventory_history: tuple[int, ...],
     inv_color = "red" if inv == 0 else ("orange" if inv < 4 else "green" if inv <= 30 else "blue")
     bl_color = "red" if bl >= 20 else ("orange" if bl >= 5 else "green" if bl == 0 else "gray")
 
-    with st.container(border=True):
-        st.caption("On-hand inventory")
-        st.markdown(f"# :{inv_color}[{inv}]")
-        inv_delta = _trend_delta(station_inventory_history)
-        st.caption(inv_delta or "first week")
+    row1_left, row1_right = st.columns(2)
+    with row1_left:
+        with st.container(border=True):
+            st.markdown(_cardlabel("On-hand inventory"), unsafe_allow_html=True)
+            st.markdown(_bignum(inv, inv_color), unsafe_allow_html=True)
+            inv_delta = _trend_delta(station_inventory_history)
+            st.markdown(_cardfoot(inv_delta or "first week"), unsafe_allow_html=True)
+    with row1_right:
+        with st.container(border=True):
+            st.markdown(_cardlabel("Backlog (unfilled orders)"), unsafe_allow_html=True)
+            st.markdown(_bignum(bl, bl_color), unsafe_allow_html=True)
+            bl_delta = _trend_delta(station_backlog_history)
+            st.markdown(_cardfoot(bl_delta or "first week"), unsafe_allow_html=True)
 
-    with st.container(border=True):
-        st.caption("Backlog (unfilled orders)")
-        st.markdown(f"# :{bl_color}[{bl}]")
-        bl_delta = _trend_delta(station_backlog_history)
-        st.caption(bl_delta or "first week")
-
-    with st.container(border=True):
-        st.caption("Shipment that just arrived")
-        st.markdown(f"# {view.last_shipment_received}")
-        st.caption(f"Supply line: **{view.supply_line}** still in transit")
-
-    with st.container(border=True):
-        st.caption("Order from downstream this week")
-        order_pulse_color = ("red" if view.last_order_received >= 20
-                             else "orange" if view.last_order_received >= 10
-                             else "gray")
-        st.markdown(f"# :{order_pulse_color}[{view.last_order_received}]")
-        recent = view.recent_orders_received
-        if len(recent) >= 2:
-            pulse = recent[-1] - recent[0]
-            if pulse > 0:
-                st.caption(f":red[+{pulse} vs {len(recent)} weeks ago] (demand climbing)")
-            elif pulse < 0:
-                st.caption(f":green[{pulse} vs {len(recent)} weeks ago] (demand cooling)")
+    row2_left, row2_right = st.columns(2)
+    with row2_left:
+        with st.container(border=True):
+            st.markdown(_cardlabel("Shipment just arrived"), unsafe_allow_html=True)
+            st.markdown(_bignum(view.last_shipment_received, "gray"),
+                        unsafe_allow_html=True)
+            st.markdown(
+                _cardfoot(f"Supply line: <b>{view.supply_line}</b> in transit"),
+                unsafe_allow_html=True,
+            )
+    with row2_right:
+        with st.container(border=True):
+            st.markdown(_cardlabel("Order from downstream"), unsafe_allow_html=True)
+            order_pulse_color = ("red" if view.last_order_received >= 20
+                                 else "orange" if view.last_order_received >= 10
+                                 else "gray")
+            st.markdown(_bignum(view.last_order_received, order_pulse_color),
+                        unsafe_allow_html=True)
+            recent = view.recent_orders_received
+            if len(recent) >= 2:
+                pulse = recent[-1] - recent[0]
+                if pulse > 0:
+                    foot = (f"<span style='color:#ff8b94'>+{pulse} vs "
+                            f"{len(recent)}w ago</span> — demand climbing")
+                elif pulse < 0:
+                    foot = (f"<span style='color:#4ade80'>{pulse} vs "
+                            f"{len(recent)}w ago</span> — demand cooling")
+                else:
+                    foot = "steady demand"
             else:
-                st.caption("steady demand")
-        else:
-            st.caption("first reading")
+                foot = "first reading"
+            st.markdown(_cardfoot(foot), unsafe_allow_html=True)
 
 
 def _render_money_meter(this_week_holding: float, this_week_backorder: float,
@@ -251,35 +343,59 @@ def _render_history_chart(orders_placed: tuple[int, ...],
         y=list(orders_placed),
         mode="lines+markers",
         name="Your orders",
-        line=dict(color="#1f77b4", width=3),
+        line=dict(color="#60a5fa", width=4),
+        marker=dict(size=9),
     ))
     if orders_received:
         recv_weeks = list(range(1, len(orders_received) + 1))
         fig.add_trace(go.Scatter(
             x=recv_weeks,
             y=list(orders_received),
-            mode="lines",
+            mode="lines+markers",
             name="Demand from downstream",
-            line=dict(color="#d62728", width=2, dash="dot"),
+            line=dict(color="#ff5d6a", width=4, dash="dot"),
+            marker=dict(size=8),
         ))
     if shipments_received:
         ship_weeks = list(range(1, len(shipments_received) + 1))
         fig.add_trace(go.Scatter(
             x=ship_weeks,
             y=list(shipments_received),
-            mode="lines",
+            mode="lines+markers",
             name="Shipments you got",
-            line=dict(color="#2ca02c", width=2, dash="dash"),
+            line=dict(color="#4ade80", width=4, dash="dash"),
+            marker=dict(size=8),
         ))
 
     fig.update_layout(
-        height=280,
-        margin=dict(l=10, r=10, t=30, b=10),
-        xaxis_title="Week",
-        yaxis_title="Units",
-        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="left", x=0.0),
-        title=dict(text="Your signals over time", x=0.0, xanchor="left",
-                   font=dict(size=14)),
+        template="plotly_dark",
+        # Match the secondaryBackgroundColor from config.toml so the chart
+        # blends seamlessly with the surrounding cards.
+        paper_bgcolor="#222730",
+        plot_bgcolor="#222730",
+        height=360,
+        margin=dict(l=20, r=20, t=50, b=20),
+        font=dict(size=15, color="#E8EAED"),
+        xaxis=dict(
+            title=dict(text="Week", font=dict(size=15)),
+            tickfont=dict(size=14),
+            gridcolor="#2e333c",
+        ),
+        yaxis=dict(
+            title=dict(text="Units", font=dict(size=15)),
+            tickfont=dict(size=14),
+            gridcolor="#2e333c",
+        ),
+        legend=dict(
+            orientation="h", yanchor="bottom", y=1.04,
+            xanchor="left", x=0.0,
+            font=dict(size=14),
+        ),
+        title=dict(
+            text="Your signals over time",
+            x=0.0, xanchor="left",
+            font=dict(size=18, color="#E8EAED"),
+        ),
     )
     # Don't force a y-range — the prior version forced 3-5 which hid all the
     # action when downstream orders spike to 20-40+.
@@ -295,6 +411,10 @@ def render(state: GameState, on_submit) -> None:
             own station + ``build_station_view(state, state.player_role)``.
         on_submit: callback invoked when the player clicks "Advance week".
     """
+    # Inject typography CSS once per rerun. Streamlit dedupes identical
+    # <style> blocks so this is cheap even though it fires every script run.
+    st.markdown(_PLAY_CSS, unsafe_allow_html=True)
+
     role = state.player_role
     view = build_station_view(state, role)
     me = state.stations[role.value]
